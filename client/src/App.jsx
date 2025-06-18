@@ -9,6 +9,7 @@ import MovieDetails from './pages/MovieDetails'
 import Favourite from './pages/Favourite'
 import {Toaster } from 'react-hot-toast'
 import Footer from './components/Footer'
+import Dashboard from './pages/Dashboard'
 
 const App = () => {
 
@@ -26,6 +27,7 @@ const isAdminRoute = useLocation().pathname.startsWith('/admin')
         <Route path='/movies/:id/:date' element={<SeatLayout />} />
         <Route path="/my-bookings" element={<MyBookings />} />
         <Route path="/favourite" element={<Favourite />} />
+        <Route path="/dashboard" element={<Dashboard/>} />
       </Routes>
        {!isAdminRoute && <Footer/>}
     </>
