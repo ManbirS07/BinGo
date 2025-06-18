@@ -269,8 +269,6 @@ const ParticlesBG = () => {
   )
 }
 
-// ...rest of your HeroSection code remains unchanged...
-
 
 // --- Main Hero Section ---
 const HeroSection = () => {
