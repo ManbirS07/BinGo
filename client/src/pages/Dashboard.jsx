@@ -82,7 +82,7 @@ const Dashboard = () => {
         firstName: form.firstName,
         lastName: form.lastName,
         username: form.username
-        // Email and phone update require Clerk verification flows, so we skip them here
+       
       })
       setEditMode(false)
       setSuccessMsg('Profile updated successfully!')
