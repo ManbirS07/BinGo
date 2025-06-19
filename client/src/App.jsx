@@ -12,8 +12,6 @@ import Dashboard from './pages/Dashboard'
 import Missions from './pages/Missions'
 
 const App = () => {
-
-
 const isAdminRoute = useLocation().pathname.startsWith('/admin')
 
   return (
