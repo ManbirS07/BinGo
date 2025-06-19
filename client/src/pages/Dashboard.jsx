@@ -112,7 +112,7 @@ const Dashboard = () => {
         {/* Profile Card with Glow and Animation */}
         <div className="relative group">
           <div className="absolute -inset-2 rounded-full blur-2xl opacity-60 group-hover:opacity-90 transition-all duration-500 bg-gradient-to-tr from-green-400/40 via-emerald-400/30 to-yellow-200/30 animate-blob" />
-          <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-green-400 shadow-2xl bg-white z-10 relative transition-transform duration-300 group-hover:scale-105 flex items-center justify-center">
+          <div className="w-70 h-70 rounded-full overflow-hidden border-4 border-green-400 shadow-2xl bg-white z-10 relative transition-transform duration-300 group-hover:scale-105 flex items-center justify-center">
             <img
               src={profileImage || '/default-avatar.png'}
               alt="Profile"

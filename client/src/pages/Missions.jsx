@@ -1,6 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { GiftIcon, TrophyIcon, CameraIcon, MapPinIcon, ScanIcon, CheckCircle2Icon, Loader2Icon, InfoIcon, SparklesIcon, StarIcon } from 'lucide-react'
 import clsx from 'clsx'
+import Webcam from 'react-webcam'
+
+const CLOUDINARY_UPLOAD_PRESET = 'BinGo_CodePaglus'
+const CLOUDINARY_CLOUD_NAME = 'dgclo6bft'
 
 const missionIcons = {
   "Dispose Waste": <CameraIcon className="w-6 h-6 text-pink-400" />,
@@ -23,7 +27,6 @@ const funFacts = [
   "Every small action counts towards a greener planet."
 ]
 
-// Mock missions data
 const MOCK_MISSIONS = [
   {
     id: 1,
@@ -59,14 +62,11 @@ const MOCK_MISSIONS = [
   }
 ]
 
-// Helper to get today's date string
 const todayStr = () => new Date().toISOString().slice(0, 10)
 
 const Missions = () => {
-  // Simulate a logged-in user
   const user = { id: 'mock-user', name: 'Eco Hero' }
 
-  // Local state for user missions and proof
   const [userMissions, setUserMissions] = useState(() =>
     MOCK_MISSIONS.map(m => ({
       missionId: m.id,
@@ -82,10 +82,13 @@ const Missions = () => {
   const [loading, setLoading] = useState(false)
   const [factIdx, setFactIdx] = useState(0)
   const [proofImage, setProofImage] = useState(null)
+  const [useCamera, setUseCamera] = useState(false)
+  const webcamRef = useRef(null)
   const [motivation, setMotivation] = useState('')
   const [showConfetti, setShowConfetti] = useState(false)
+  const [confirmSubmit, setConfirmSubmit] = useState(false)
+  const fileInputRef = useRef(null);
 
-  // Fun fact rotator
   useEffect(() => {
     const interval = setInterval(() => {
       setFactIdx(idx => (idx + 1) % funFacts.length)
@@ -93,7 +96,6 @@ const Missions = () => {
     return () => clearInterval(interval)
   }, [])
 
-  // Get status for a mission
   const getStatus = (missionId) => {
     const um = userMissions.find(m => m.missionId === missionId)
     if (!um) return 'not_joined'
@@ -102,45 +104,10 @@ const Missions = () => {
     return 'not_joined'
   }
 
-  // User progress
   const completedCount = userMissions.filter(m => m.completed).length
   const totalCount = missions.length
   const progress = totalCount ? Math.round((completedCount / totalCount) * 100) : 0
 
-  // Handle proof upload
-  const handleProofUpload = (mission) => {
-    setSelectedMission(mission)
-    setShowModal(true)
-    setProofImage(null)
-    setMotivation('')
-  }
-
-  // Simulate proof upload and completion
-  const handleProofSubmit = () => {
-    setLoading(true)
-    setTimeout(() => {
-      setUserMissions(prev =>
-        prev.map(m =>
-          m.missionId === selectedMission.id
-            ? {
-                ...m,
-                completed: true,
-                joined: true,
-                proofUrl: proofImage ? URL.createObjectURL(proofImage) : '',
-                completedAt: todayStr()
-              }
-            : m
-        )
-      )
-      setShowModal(false)
-      setLoading(false)
-      setShowConfetti(true)
-      setMotivation("Great job! You've completed a mission and made your city cleaner! 🌱")
-      setTimeout(() => setShowConfetti(false), 2500)
-    }, 1200)
-  }
-
-  // Simulate joining a mission
   const handleJoinMission = (mission) => {
     setUserMissions(prev =>
       prev.map(m =>
@@ -152,7 +119,53 @@ const Missions = () => {
     setMotivation("Mission joined! Upload your proof to complete it.")
   }
 
-  // Mission streaks (for 3-day streak mission)
+  const handleProofUpload = (mission) => {
+    setSelectedMission(mission)
+    setShowModal(true)
+    setProofImage(null)
+    setUseCamera(false)
+    setMotivation('')
+    setConfirmSubmit(false)
+  }
+
+  const handleProofSubmit = async () => {
+    setConfirmSubmit(false)
+    if (!proofImage) return
+    setLoading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', proofImage)
+      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET)
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+        method: 'POST',
+        body: formData
+      })
+      const data = await res.json()
+      const uploadedUrl = data.secure_url
+      setUserMissions(prev =>
+        prev.map(m =>
+          m.missionId === selectedMission.id
+            ? {
+                ...m,
+                completed: true,
+                joined: true,
+                proofUrl: uploadedUrl,
+                completedAt: todayStr()
+              }
+            : m
+        )
+      )
+      setShowModal(false)
+      setShowConfetti(true)
+      setMotivation("Great job! You've completed a mission and made your city cleaner! 🌱")
+      setTimeout(() => setShowConfetti(false), 2500)
+    } catch (err) {
+      alert("Upload failed. Try again.")
+      console.error(err)
+    }
+    setLoading(false)
+  }
+
   const streakDays = userMissions.find(m => m.missionId === 3 && m.completed)
     ? 3
     : userMissions.find(m => m.missionId === 3 && m.joined)
@@ -294,6 +307,14 @@ const Missions = () => {
                       Upload Proof
                     </button>
                   )}
+                  {status === 'completed' && (
+                    <button
+                      onClick={() => handleProofUpload(mission)}
+                      className="px-5 py-2 rounded-full font-semibold shadow-lg transition bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-300 hover:to-emerald-400 text-white"
+                    >
+                      Upload Again
+                    </button>
+                  )}
                 </div>
                 {/* Confetti animation for completed */}
                 {status === 'completed' && (
@@ -335,23 +356,129 @@ const Missions = () => {
                 className="absolute top-2 right-3 text-gray-500 hover:text-red-500 text-xl"
                 onClick={() => setShowModal(false)}
               >×</button>
-              <h2 className="text-lg font-bold mb-2 text-green-700">Upload Proof for "{selectedMission?.title}"</h2>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={e => setProofImage(e.target.files[0])}
-                className="mb-4"
-              />
-              {proofImage && (
-                <img src={URL.createObjectURL(proofImage)} alt="Preview" className="w-24 h-24 rounded-lg object-cover mb-3 border-2 border-green-400" />
+              <h2 className="text-lg font-bold mb-4 text-green-700 text-center">
+                Upload Proof for "{selectedMission?.title}"
+              </h2>
+
+              <div className="flex gap-2 mb-4">
+  <button
+    onClick={() => {
+      setUseCamera(false)
+      setTimeout(() => fileInputRef.current && fileInputRef.current.click(), 0)
+    }}
+    className={`px-3 py-1 rounded-full font-semibold ${!useCamera ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-700'}`}
+    type="button"
+  >
+    Upload
+  </button>
+  <button
+    onClick={() => setUseCamera(true)}
+    className={`px-3 py-1 rounded-full font-semibold ${useCamera ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-700'}`}
+    type="button"
+  >
+    Camera
+  </button>
+</div>
+
+{!useCamera ? (
+  <>
+    <input
+      ref={fileInputRef}
+      type="file"
+      accept="image/*"
+      style={{ display: 'none' }}
+      onChange={e => {
+        setProofImage(e.target.files[0])
+        setConfirmSubmit(false)
+      }}
+    />
+    {proofImage && (
+      <div className="flex flex-col items-center mb-3">
+        <img src={URL.createObjectURL(proofImage)} alt="Preview" className="w-24 h-24 rounded-lg object-cover border-2 border-green-400 mb-2" />
+        <button
+          className="text-sm text-blue-600 underline mb-1"
+          onClick={() => {
+            setProofImage(null)
+            setConfirmSubmit(false)
+          }}
+        >
+          Upload Again
+        </button>
+      </div>
+    )}
+  </>
+) : (
+  <>
+    <Webcam
+      audio={false}
+      ref={webcamRef}
+      screenshotFormat="image/jpeg"
+      className="w-48 h-48 rounded-lg mb-3 border-2 border-green-400"
+    />
+    <button
+      onClick={() => {
+        const imageSrc = webcamRef.current.getScreenshot()
+        fetch(imageSrc)
+          .then(res => res.blob())
+          .then(blob => {
+            const file = new File([blob], "proof.jpg", { type: blob.type })
+            setProofImage(file)
+            setConfirmSubmit(false)
+          })
+      }}
+      className="bg-emerald-500 text-white px-4 py-1 rounded-full font-semibold hover:bg-emerald-600 mb-2"
+    >
+      Capture
+    </button>
+    {proofImage && (
+      <div className="flex flex-col items-center mb-3">
+        <img src={URL.createObjectURL(proofImage)} alt="Preview" className="w-24 h-24 rounded-lg object-cover border-2 border-green-400 mb-2" />
+        <button
+          className="text-sm text-blue-600 underline mb-1"
+          onClick={() => {
+            setProofImage(null)
+            setConfirmSubmit(false)
+          }}
+        >
+          Capture Again
+        </button>
+      </div>
+    )}
+  </>
+)}
+
+              {/* Confirm before final submit */}
+              {proofImage && !confirmSubmit && (
+                <button
+                  onClick={() => setConfirmSubmit(true)}
+                  className="bg-yellow-500 text-white px-6 py-2 rounded-full font-semibold hover:bg-yellow-600 transition mt-2"
+                >
+                  Continue
+                </button>
               )}
-              <button
-                onClick={handleProofSubmit}
-                disabled={loading || !proofImage}
-                className="bg-green-500 text-white px-6 py-2 rounded-full font-semibold hover:bg-green-600 transition"
-              >
-                {loading ? <Loader2Icon className="w-5 h-5 animate-spin" /> : "Submit Proof"}
-              </button>
+
+              {confirmSubmit && (
+                <div className="flex flex-col items-center mt-2">
+                  <div className="mb-3 text-green-700 font-semibold text-center">
+                    Are you sure you want to submit this image as proof?
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleProofSubmit}
+                      disabled={loading}
+                      className="bg-green-500 text-white px-6 py-2 rounded-full font-semibold hover:bg-green-600 transition"
+                    >
+                      {loading ? <Loader2Icon className="w-5 h-5 animate-spin" /> : "Yes, Submit"}
+                    </button>
+                    <button
+                      onClick={() => setConfirmSubmit(false)}
+                      className="bg-gray-400 text-white px-6 py-2 rounded-full font-semibold hover:bg-gray-500 transition"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
