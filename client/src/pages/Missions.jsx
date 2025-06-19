@@ -3,8 +3,8 @@ import { GiftIcon, TrophyIcon, CameraIcon, MapPinIcon, ScanIcon, CheckCircle2Ico
 import clsx from 'clsx'
 import Webcam from 'react-webcam'
 
-const CLOUDINARY_UPLOAD_PRESET = 'your_upload_preset'
-const CLOUDINARY_CLOUD_NAME = 'your_cloud_name'
+const CLOUDINARY_UPLOAD_PRESET = 'BinGo_CodePaglus'
+const CLOUDINARY_CLOUD_NAME = 'dgclo6bft'
 
 const missionIcons = {
   "Dispose Waste": <CameraIcon className="w-6 h-6 text-pink-400" />,
