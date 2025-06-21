@@ -10,14 +10,28 @@ import {Toaster } from 'react-hot-toast'
 import Footer from './components/Footer'
 import Dashboard from './pages/Dashboard'
 import Missions from './pages/Missions'
+import ChatbotButton from './components/ChatbotButton'
+import MapPage from './pages/MapPage'
+import SuggestBinButton from './components/SuggestBinButton'
+import SuggestBin from './pages/SuggestBin'
+import DustbinMap from './pages/DustbinMap'
 
 const App = () => {
-const isAdminRoute = useLocation().pathname.startsWith('/admin')
+
+
+const location = useLocation()
+const path = location.pathname
+
+const shouldHideNavbar =
+  path.startsWith('/admin') ||
+  path === '/suggest-bin' ||
+  path === '/dustbin-map' ||
+  path === '/map' 
 
   return (
     <>
     <Toaster/>
-     {!isAdminRoute && <Navbar/>}
+     {!shouldHideNavbar && <Navbar/>}
       <Routes>
         <Route path="/" element={<Home/>} />
         <Route path="/missions" element={<Missions/>} />
@@ -26,8 +40,13 @@ const isAdminRoute = useLocation().pathname.startsWith('/admin')
         <Route path="/my-bookings" element={<MyBookings />} />
         <Route path="/favourite" element={<Favourite />} />
         <Route path="/dashboard" element={<Dashboard/>} />
+        <Route path='/suggest-bin' element={<SuggestBin/>} />
+        <Route path="/map" element={<DustbinMap />} />
+          <Route path="/dustbin-map" element={<DustbinMap />} />
       </Routes>
-       {!isAdminRoute && <Footer/>}
+      <SuggestBinButton/>
+        <ChatbotButton/>
+       {!shouldHideNavbar && <Footer/>}
     </>
   )
 }

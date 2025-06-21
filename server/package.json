@@ -1,0 +1,32 @@
+{
+  "name": "bingo-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "waste-management",
+    "chatbot",
+    "gemini-ai",
+    "environmental"
+  ],
+  "author": "DevPaglus",
+  "license": "ISC",
+  "description": "BinGo Assistant - AI-powered waste management chatbot using Gemini AI",
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "mongoose": "^8.16.0",
+    "multer": "^2.0.1",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
