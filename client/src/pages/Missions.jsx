@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from 'react'
 import { GiftIcon, TrophyIcon, CameraIcon, MapPinIcon, ScanIcon, CheckCircle2Icon, Loader2Icon, InfoIcon, SparklesIcon, StarIcon } from 'lucide-react'
 import clsx from 'clsx'
 import Webcam from 'react-webcam'
+import { useUser } from '@clerk/clerk-react'
+
 
 const CLOUDINARY_UPLOAD_PRESET = 'BinGo_CodePaglus'
 const CLOUDINARY_CLOUD_NAME = 'dgclo6bft'
@@ -66,6 +68,9 @@ const todayStr = () => new Date().toISOString().slice(0, 10)
 
 const Missions = () => {
   const user = { id: 'mock-user', name: 'Eco Hero' }
+  const { user: clerkUser } = useUser() 
+  const profileImage = clerkUser?.unsafeMetadata?.profileImage 
+
 
   const [userMissions, setUserMissions] = useState(() =>
     MOCK_MISSIONS.map(m => ({
@@ -175,6 +180,17 @@ const Missions = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-950 via-black to-emerald-900 pt-32 pb-16 px-6 md:px-16">
       <div className="max-w-5xl mx-auto">
+          {/* Profile image */}
+         <div className="flex justify-center mb-8">
+          <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-green-400 shadow-2xl bg-white flex items-center justify-center">
+            <img
+              src={profileImage || '/default-avatar.png'}
+              alt="Profile"
+              className="w-full h-full object-cover rounded-full"
+              style={{ aspectRatio: '1/1' }}
+            />
+          </div>
+        </div>
         {/* Welcome and fun fact */}
         <div className="mb-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>

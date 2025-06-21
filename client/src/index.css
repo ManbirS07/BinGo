@@ -1,6 +1,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Outfit:wght@100..900&display=swap');
 @import "tailwindcss";
+@tailwind utilities;
 
+@layer utilities {
+  .animate-fade-slide {
+    animation: fadeSlideIn 0.3s ease-out both;
+  }
+
+  @keyframes fadeSlideIn {
+    0% {
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+}
 
 @theme{
   --color-primary: #F84565;

@@ -1,25 +1,27 @@
+const API_URL = 'http://localhost:4000/api'
+
 export const fetchMissions = async () => {
-  const res = await fetch('/api/missions')
+  const res = await fetch(`${API_URL}/missions`)
   return res.json()
 }
 
 export const fetchUserMissions = async (userId) => {
-  const res = await fetch(`/api/user-missions/${userId}`)
+  const res = await fetch(`${API_URL}/user-missions/${userId}`)
   return res.json()
 }
 
 export const joinMission = async (missionId, userId) => {
-  await fetch('/api/join-mission', {
+  await fetch(`${API_URL}/join-mission`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ missionId, userId })
   })
 }
 
-export const completeMission = async (missionId, userId, imageUrl) => {
-  await fetch('/api/complete-mission', {
+export const completeMission = async (missionId, userId, proofUrl) => {
+  await fetch(`${API_URL}/complete-mission`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ missionId, userId, imageUrl })
+    body: JSON.stringify({ missionId, userId, proofUrl })
   })
 }
