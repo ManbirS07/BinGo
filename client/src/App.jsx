@@ -18,6 +18,7 @@ import DustbinMap from './pages/DustbinMap'
 
 const App = () => {
 
+
 const location = useLocation()
 const path = location.pathname
 
@@ -26,7 +27,6 @@ const shouldHideNavbar =
   path === '/suggest-bin' ||
   path === '/dustbin-map' ||
   path === '/map' 
-
 
   return (
     <>
