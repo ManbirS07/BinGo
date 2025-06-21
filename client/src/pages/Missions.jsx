@@ -128,7 +128,19 @@ const Missions = () => {
     setConfirmSubmit(false)
   }
 
-  const handleProofSubmit = async () => {
+  const checkDuplicate = async (cloudinaryUrl) => {
+  const res = await fetch("http://127.0.0.1:5000/check_duplicate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ image_url: cloudinaryUrl }),
+  });
+
+  const data = await res.json();
+  console.log(data)
+  return data;
+};
+
+  const handleProofSubmit = async() => {
     setConfirmSubmit(false)
     if (!proofImage) return
     setLoading(true)
@@ -142,6 +154,12 @@ const Missions = () => {
       })
       const data = await res.json()
       const uploadedUrl = data.secure_url
+      const result = await checkDuplicate(uploadedUrl);
+      if (result.duplicate) {
+      alert("This image looks like a duplicate submission!");
+      setLoading(false);
+      return; 
+}
       setUserMissions(prev =>
         prev.map(m =>
           m.missionId === selectedMission.id
