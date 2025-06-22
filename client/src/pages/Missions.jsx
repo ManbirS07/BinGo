@@ -293,7 +293,6 @@ const Missions = () => {
         setStepStatus(s => ({ ...s, face: 'skip' }))
       }
 
-      // All checks passed
       setUploadStatus('All checks passed! Completing mission...')
       setTimeout(() => {
         setUserMissions(prev =>
