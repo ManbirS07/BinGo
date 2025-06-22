@@ -1,12 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react'
-import { GiftIcon, TrophyIcon, CameraIcon, MapPinIcon, ScanIcon, CheckCircle2Icon, Loader2Icon, InfoIcon, SparklesIcon, StarIcon } from 'lucide-react'
+import { GiftIcon, TrophyIcon, CameraIcon, MapPinIcon, ScanIcon, CheckCircle2Icon, Loader2Icon, InfoIcon, SparklesIcon, StarIcon, AlertTriangleIcon, XCircleIcon, CheckIcon } from 'lucide-react'
 import clsx from 'clsx'
 import Webcam from 'react-webcam'
 import { useUser } from '@clerk/clerk-react'
-
+import { verifyFace } from '../utils/verifyFace'
 
 const CLOUDINARY_UPLOAD_PRESET = 'BinGo_CodePaglus'
 const CLOUDINARY_CLOUD_NAME = 'dgclo6bft'
+const BACKEND_URL = 'http://127.0.0.1:5000'
 
 const missionIcons = {
   "Dispose Waste": <CameraIcon className="w-6 h-6 text-pink-400" />,
@@ -26,7 +27,9 @@ const funFacts = [
   "Plastic can take up to 1,000 years to decompose in landfills.",
   "Composting food waste reduces methane emissions from landfills.",
   "Suggesting new bin locations helps keep your city cleaner!",
-  "Every small action counts towards a greener planet."
+  "Every small action counts towards a greener planet.",
+  "AI detection helps prevent fake submissions and ensures authentic eco-actions.",
+  "Our duplicate detection system ensures fair play for all users."
 ]
 
 const MOCK_MISSIONS = [
@@ -67,10 +70,9 @@ const MOCK_MISSIONS = [
 const todayStr = () => new Date().toISOString().slice(0, 10)
 
 const Missions = () => {
-  const user = { id: 'mock-user', name: 'Eco Hero' }
-  const { user: clerkUser } = useUser() 
-  const profileImage = clerkUser?.unsafeMetadata?.profileImage 
-
+  const { user: clerkUser } = useUser()
+  const profileImage = clerkUser?.unsafeMetadata?.profileImage
+  const userId = clerkUser?.id || 'mock-user'
 
   const [userMissions, setUserMissions] = useState(() =>
     MOCK_MISSIONS.map(m => ({
@@ -81,6 +83,7 @@ const Missions = () => {
       completedAt: null
     }))
   )
+
   const [missions] = useState(MOCK_MISSIONS)
   const [selectedMission, setSelectedMission] = useState(null)
   const [showModal, setShowModal] = useState(false)
@@ -92,7 +95,18 @@ const Missions = () => {
   const [motivation, setMotivation] = useState('')
   const [showConfetti, setShowConfetti] = useState(false)
   const [confirmSubmit, setConfirmSubmit] = useState(false)
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef(null)
+  const [uploadStatus, setUploadStatus] = useState('')
+  const [error, setError] = useState('')
+  const [duplicateDetails, setDuplicateDetails] = useState(null)
+  const [aiDetectionResult, setAiDetectionResult] = useState(null)
+  const [faceVerificationResult, setFaceVerificationResult] = useState(null)
+  const [backendHealth, setBackendHealth] = useState('unknown')
+  const [stepStatus, setStepStatus] = useState({
+    ai: null,
+    duplicate: null,
+    face: null
+  })
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -100,6 +114,23 @@ const Missions = () => {
     }, 6000)
     return () => clearInterval(interval)
   }, [])
+
+  useEffect(() => {
+    checkBackendHealth()
+  }, [])
+
+  const checkBackendHealth = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/health`)
+      if (response.ok) {
+        setBackendHealth('healthy')
+      } else {
+        setBackendHealth('unhealthy')
+      }
+    } catch {
+      setBackendHealth('unhealthy')
+    }
+  }
 
   const getStatus = (missionId) => {
     const um = userMissions.find(m => m.missionId === missionId)
@@ -131,62 +162,176 @@ const Missions = () => {
     setUseCamera(false)
     setMotivation('')
     setConfirmSubmit(false)
+    setUploadStatus('')
+    setError('')
+    setDuplicateDetails(null)
+    setAiDetectionResult(null)
+    setFaceVerificationResult(null)
+    setStepStatus({ ai: null, duplicate: null, face: null })
   }
 
-  const checkDuplicate = async (cloudinaryUrl) => {
-  const res = await fetch("http://127.0.0.1:5000/check_duplicate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ image_url: cloudinaryUrl }),
-  });
-
-  const data = await res.json();
-  console.log(data)
-  return data;
-};
-
-  const handleProofSubmit = async() => {
+  // Sequential check logic
+  const handleProofSubmit = async () => {
     setConfirmSubmit(false)
     if (!proofImage) return
+
     setLoading(true)
+    setUploadStatus('Uploading image to cloud storage...')
+    setError('')
+    setDuplicateDetails(null)
+    setAiDetectionResult(null)
+    setFaceVerificationResult(null)
+    setStepStatus({ ai: null, duplicate: null, face: null })
+
     try {
+      if (backendHealth === 'unhealthy') {
+        await checkBackendHealth()
+        if (backendHealth === 'unhealthy') {
+          throw new Error('Backend service is currently unavailable. Please try again later.')
+        }
+      }
+
+      // 1. Upload to Cloudinary
       const formData = new FormData()
       formData.append('file', proofImage)
       formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET)
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+
+      const cloudinaryResponse = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
         method: 'POST',
         body: formData
       })
-      const data = await res.json()
-      const uploadedUrl = data.secure_url
-      const result = await checkDuplicate(uploadedUrl);
-      if (result.duplicate) {
-      alert("This image looks like a duplicate submission!");
-      setLoading(false);
-      return; 
-}
-      setUserMissions(prev =>
-        prev.map(m =>
-          m.missionId === selectedMission.id
-            ? {
-                ...m,
-                completed: true,
-                joined: true,
-                proofUrl: uploadedUrl,
-                completedAt: todayStr()
-              }
-            : m
+
+      if (!cloudinaryResponse.ok) {
+        throw new Error('Failed to upload image to cloud storage. Please try again.')
+      }
+
+      const cloudinaryData = await cloudinaryResponse.json()
+      const uploadedUrl = cloudinaryData.secure_url
+
+      // Step 1: AI Detection
+      setUploadStatus('Running AI detection...')
+      setStepStatus(s => ({ ...s, ai: 'loading' }))
+      const aiRes = await fetch(`${BACKEND_URL}/analyze_ai_only`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image_url: uploadedUrl })
+      })
+      const aiData = await aiRes.json()
+      setAiDetectionResult({
+        isAiGenerated: aiData.ai_generated,
+        confidence: aiData.confidence,
+        details: aiData.details
+      })
+      if (aiData.ai_generated && aiData.confidence > 0.7) {
+        setStepStatus(s => ({ ...s, ai: 'fail' }))
+        setError(`❌ AI-Generated Image Detected!\n\nThis image appears to be artificially generated with ${(aiData.confidence * 100).toFixed(1)}% confidence.\n\nFor fair play, please upload authentic photos of your actual eco-actions.`)
+        setUploadStatus('')
+        setLoading(false)
+        return
+      } else {
+        setStepStatus(s => ({ ...s, ai: 'pass' }))
+        setUploadStatus('AI detection passed. Checking for duplicates...')
+      }
+
+      // Step 2: Duplicate Detection
+      setStepStatus(s => ({ ...s, duplicate: 'loading' }))
+      const dupRes = await fetch(`${BACKEND_URL}/check_duplicate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image_url: uploadedUrl, user_id: userId, mission_id: selectedMission?.id })
+      })
+      const dupData = await dupRes.json()
+      if (dupData.status === "rejected" || dupData.duplicate) {
+        setStepStatus(s => ({ ...s, duplicate: 'fail' }))
+        const matchDate = dupData.matched_date ? new Date(dupData.matched_date).toLocaleDateString() : 'Unknown'
+        const detectionMethod = dupData.method ? dupData.method.toUpperCase() : 'UNKNOWN'
+        setDuplicateDetails({
+          matchedImage: dupData.matched_image,
+          matchedDate: matchDate,
+          method: detectionMethod,
+          similarity: dupData.similarity
+        })
+        setError(`🔍 Duplicate Image Detected!\n\nThis image matches one you uploaded on ${matchDate}.\nDetection method: ${detectionMethod}${dupData.similarity ? `\nSimilarity: ${(dupData.similarity * 100).toFixed(1)}%` : ''}\n\nPlease upload a new, unique photo for this mission.`)
+        setUploadStatus('')
+        setLoading(false)
+        return
+      } else {
+        setStepStatus(s => ({ ...s, duplicate: 'pass' }))
+        setUploadStatus('Duplicate check passed. Running face verification...')
+      }
+
+      // Step 3: Face Verification (if profile image available)
+      if (profileImage) {
+        setStepStatus(s => ({ ...s, face: 'loading' }))
+        setUploadStatus('Running face verification...')
+        const faceResult = await verifyFace(profileImage, proofImage)
+        setFaceVerificationResult(faceResult)
+        if (faceResult.error) {
+          setStepStatus(s => ({ ...s, face: 'fail' }))
+          setError(`❌ Face Verification Error: ${faceResult.error}`)
+          setUploadStatus('')
+          setLoading(false)
+          return
+        }
+        if (faceResult.verified === false) {
+          setStepStatus(s => ({ ...s, face: 'fail' }))
+          setError(`❌ Face Verification Failed!\n\nThe face in your proof image does not match your profile image.`)
+          setUploadStatus('')
+          setLoading(false)
+          return
+        }
+        if (faceResult.verified === undefined) {
+          setStepStatus(s => ({ ...s, face: 'fail' }))
+          setError(`❌ No face detected in one or both images. Please ensure your face is clearly visible.`)
+          setUploadStatus('')
+          setLoading(false)
+          return
+        }
+        setStepStatus(s => ({ ...s, face: 'pass' }))
+        setUploadStatus('Face verification successful!')
+      } else {
+        setStepStatus(s => ({ ...s, face: 'skip' }))
+      }
+
+      // All checks passed
+      setUploadStatus('All checks passed! Completing mission...')
+      setTimeout(() => {
+        setUserMissions(prev =>
+          prev.map(m =>
+            m.missionId === selectedMission.id
+              ? {
+                  ...m,
+                  completed: true,
+                  joined: true,
+                  proofUrl: uploadedUrl,
+                  completedAt: todayStr()
+                }
+              : m
+          )
         )
-      )
-      setShowModal(false)
-      setShowConfetti(true)
-      setMotivation("Great job! You've completed a mission and made your city cleaner! 🌱")
-      setTimeout(() => setShowConfetti(false), 2500)
+        setShowModal(false)
+        setShowConfetti(true)
+        setMotivation(`🎉 Mission completed successfully! You've earned ${selectedMission.reward} points and made your city cleaner! 🌱`)
+        setTimeout(() => setShowConfetti(false), 3000)
+      }, 1200)
+
     } catch (err) {
-      alert("Upload failed. Try again.")
-      console.error(err)
+      setError(`❌ Upload Failed\n\n${err.message}\n\nPlease check your internet connection and try again.`)
     }
+
     setLoading(false)
+    setUploadStatus('')
+  }
+
+  const resetModal = () => {
+    setProofImage(null)
+    setConfirmSubmit(false)
+    setError('')
+    setUploadStatus('')
+    setDuplicateDetails(null)
+    setAiDetectionResult(null)
+    setFaceVerificationResult(null)
+    setStepStatus({ ai: null, duplicate: null, face: null })
   }
 
   const streakDays = userMissions.find(m => m.missionId === 3 && m.completed)
@@ -195,11 +340,50 @@ const Missions = () => {
     ? 2
     : 1
 
+  // Helper for step status
+  const renderStepStatus = (label, status) => (
+    <div className="flex items-center gap-2 text-sm mb-1">
+      {status === 'loading' && <Loader2Icon className="w-4 h-4 animate-spin text-blue-600" />}
+      {status === 'pass' && <CheckCircle2Icon className="w-4 h-4 text-green-500" />}
+      {status === 'fail' && <XCircleIcon className="w-4 h-4 text-red-500" />}
+      {status === 'skip' && <InfoIcon className="w-4 h-4 text-gray-400" />}
+      <span className={
+        status === 'pass' ? 'text-green-700' :
+        status === 'fail' ? 'text-red-700' :
+        status === 'loading' ? 'text-blue-700' :
+        'text-gray-700'
+      }>
+        {label}
+        {status === 'skip' && ' (skipped)'}
+      </span>
+    </div>
+  )
+
+
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-950 via-black to-emerald-900 pt-32 pb-16 px-6 md:px-16">
       <div className="max-w-5xl mx-auto">
-          {/* Profile image */}
-         <div className="flex justify-center mb-8">
+        {/* Backend Status Indicator */}
+        <div className="fixed top-4 right-4 z-40">
+          <div className={clsx(
+            "flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold",
+            backendHealth === 'healthy' ? 'bg-green-500/20 text-green-300 border border-green-500/30' :
+            backendHealth === 'unhealthy' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
+            'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
+          )}>
+            <div className={clsx(
+              "w-2 h-2 rounded-full",
+              backendHealth === 'healthy' ? 'bg-green-400' :
+              backendHealth === 'unhealthy' ? 'bg-red-400' :
+              'bg-yellow-400'
+            )} />
+            AI Detection: {backendHealth === 'healthy' ? 'Online' : backendHealth === 'unhealthy' ? 'Offline' : 'Checking...'}
+          </div>
+        </div>
+
+        {/* Profile image */}
+        <div className="flex justify-center mb-8">
           <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-green-400 shadow-2xl bg-white flex items-center justify-center">
             <img
               src={profileImage || '/default-avatar.png'}
@@ -209,6 +393,7 @@ const Missions = () => {
             />
           </div>
         </div>
+
         {/* Welcome and fun fact */}
         <div className="mb-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
@@ -383,139 +568,260 @@ const Missions = () => {
         </div>
 
         {/* Proof Upload Modal */}
-        {showModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-            <div className="bg-white rounded-xl p-8 shadow-xl w-[350px] flex flex-col items-center relative">
-              <button
-                className="absolute top-2 right-3 text-gray-500 hover:text-red-500 text-xl"
-                onClick={() => setShowModal(false)}
-              >×</button>
-              <h2 className="text-lg font-bold mb-4 text-green-700 text-center">
-                Upload Proof for "{selectedMission?.title}"
-              </h2>
+         // ...existing code...
 
-              <div className="flex gap-2 mb-4">
-  <button
-    onClick={() => {
-      setUseCamera(false)
-      setTimeout(() => fileInputRef.current && fileInputRef.current.click(), 0)
-    }}
-    className={`px-3 py-1 rounded-full font-semibold ${!useCamera ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-700'}`}
-    type="button"
-  >
-    Upload
-  </button>
-  <button
-    onClick={() => setUseCamera(true)}
-    className={`px-3 py-1 rounded-full font-semibold ${useCamera ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-700'}`}
-    type="button"
-  >
-    Camera
-  </button>
-</div>
+// Replace the Proof Upload Modal section with this updated, more interactive UI:
+{showModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+    <div className="bg-gradient-to-br from-green-50 via-white to-emerald-100 rounded-2xl p-7 shadow-2xl w-full max-w-md flex flex-col items-center relative max-h-[90vh] overflow-y-auto border-2 border-emerald-200 animate-fade-in-up">
+      <button
+        className="absolute top-2 right-3 text-gray-400 hover:text-red-500 text-2xl transition"
+        onClick={() => setShowModal(false)}
+        aria-label="Close"
+      >×</button>
+      <h2 className="text-xl font-extrabold mb-5 text-emerald-700 text-center tracking-tight flex items-center gap-2">
+        <CameraIcon className="w-6 h-6 text-emerald-400" />
+        Upload Proof for <span className="text-green-900">"{selectedMission?.title}"</span>
+      </h2>
 
-{!useCamera ? (
-  <>
-    <input
-      ref={fileInputRef}
-      type="file"
-      accept="image/*"
-      style={{ display: 'none' }}
-      onChange={e => {
-        setProofImage(e.target.files[0])
-        setConfirmSubmit(false)
-      }}
-    />
-    {proofImage && (
-      <div className="flex flex-col items-center mb-3">
-        <img src={URL.createObjectURL(proofImage)} alt="Preview" className="w-24 h-24 rounded-lg object-cover border-2 border-green-400 mb-2" />
-        <button
-          className="text-sm text-blue-600 underline mb-1"
-          onClick={() => {
-            setProofImage(null)
-            setConfirmSubmit(false)
-          }}
-        >
-          Upload Again
-        </button>
+      {/* Step-by-step status */}
+      <div className="w-full mb-4">
+        {renderStepStatus("AI Detection", stepStatus.ai)}
+        {renderStepStatus("Duplicate Check", stepStatus.duplicate)}
+        {profileImage && renderStepStatus("Face Verification", stepStatus.face)}
       </div>
-    )}
-  </>
-) : (
-  <>
-    <Webcam
-      audio={false}
-      ref={webcamRef}
-      screenshotFormat="image/jpeg"
-      className="w-48 h-48 rounded-lg mb-3 border-2 border-green-400"
-    />
-    <button
-      onClick={() => {
-        const imageSrc = webcamRef.current.getScreenshot()
-        fetch(imageSrc)
-          .then(res => res.blob())
-          .then(blob => {
-            const file = new File([blob], "proof.jpg", { type: blob.type })
-            setProofImage(file)
-            setConfirmSubmit(false)
-          })
-      }}
-      className="bg-emerald-500 text-white px-4 py-1 rounded-full font-semibold hover:bg-emerald-600 mb-2"
-    >
-      Capture
-    </button>
-    {proofImage && (
-      <div className="flex flex-col items-center mb-3">
-        <img src={URL.createObjectURL(proofImage)} alt="Preview" className="w-24 h-24 rounded-lg object-cover border-2 border-green-400 mb-2" />
-        <button
-          className="text-sm text-blue-600 underline mb-1"
-          onClick={() => {
-            setProofImage(null)
-            setConfirmSubmit(false)
-          }}
-        >
-          Capture Again
-        </button>
-      </div>
-    )}
-  </>
-)}
 
-              {/* Confirm before final submit */}
-              {proofImage && !confirmSubmit && (
-                <button
-                  onClick={() => setConfirmSubmit(true)}
-                  className="bg-yellow-500 text-white px-6 py-2 rounded-full font-semibold hover:bg-yellow-600 transition mt-2"
-                >
-                  Continue
-                </button>
-              )}
+      {/* Upload Status */}
+      {uploadStatus && (
+        <div className="mb-4 flex items-center gap-3 bg-gradient-to-r from-blue-100 to-blue-50 px-4 py-3 rounded-xl border border-blue-200 w-full shadow animate-pulse">
+          <Loader2Icon className="w-5 h-5 animate-spin text-blue-600" />
+          <span className="text-blue-900 text-base font-semibold">{uploadStatus}</span>
+        </div>
+      )}
 
-              {confirmSubmit && (
-                <div className="flex flex-col items-center mt-2">
-                  <div className="mb-3 text-green-700 font-semibold text-center">
-                    Are you sure you want to submit this image as proof?
-                  </div>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={handleProofSubmit}
-                      disabled={loading}
-                      className="bg-green-500 text-white px-6 py-2 rounded-full font-semibold hover:bg-green-600 transition"
-                    >
-                      {loading ? <Loader2Icon className="w-5 h-5 animate-spin" /> : "Yes, Submit"}
-                    </button>
-                    <button
-                      onClick={() => setConfirmSubmit(false)}
-                      className="bg-gray-400 text-white px-6 py-2 rounded-full font-semibold hover:bg-gray-500 transition"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+      {/* Error Display */}
+      {error && (
+        <div className="mb-4 bg-gradient-to-r from-red-100 to-red-50 border border-red-200 rounded-xl p-4 w-full shadow">
+          <div className="flex items-start gap-3">
+            <AlertTriangleIcon className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+            <div className="text-red-800 text-base whitespace-pre-line font-semibold">{error}</div>
           </div>
-        )}
+          {duplicateDetails && (
+            <div className="mt-2 text-xs text-red-600">
+              <div>Method: {duplicateDetails.method}</div>
+              <div>Similarity: {(duplicateDetails.similarity * 100).toFixed(1)}%</div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* AI Detection Results */}
+      {aiDetectionResult && (
+        <div className={`mb-4 rounded-xl p-4 w-full border-2 shadow transition-all duration-300 ${
+          aiDetectionResult.isAiGenerated
+            ? "bg-gradient-to-r from-red-100 to-red-50 border-red-300"
+            : "bg-gradient-to-r from-green-100 to-green-50 border-green-300"
+        }`}>
+          <div className="flex items-center gap-3 mb-1">
+            {aiDetectionResult.isAiGenerated ? (
+              <XCircleIcon className="w-6 h-6 text-red-600" />
+            ) : (
+              <CheckIcon className="w-6 h-6 text-green-600" />
+            )}
+            <span className={`font-bold text-base ${
+              aiDetectionResult.isAiGenerated ? "text-red-800" : "text-green-800"
+            }`}>
+              {aiDetectionResult.isAiGenerated ? "AI Generated" : "Authentic Photo"}
+            </span>
+          </div>
+          <div className={`text-xs ${
+            aiDetectionResult.isAiGenerated ? "text-red-600" : "text-green-600"
+          }`}>
+            Confidence: {(aiDetectionResult.confidence * 100).toFixed(1)}%
+          </div>
+        </div>
+      )}
+
+      {/* Face Verification Results */}
+      {faceVerificationResult && (
+        <div className="mb-4 rounded-xl p-4 w-full border-2 bg-gradient-to-r from-blue-100 to-blue-50 border-blue-300 shadow">
+          <div className="flex items-center gap-3 mb-1">
+            {faceVerificationResult.verified ? (
+              <CheckIcon className="w-6 h-6 text-green-600" />
+            ) : (
+              <XCircleIcon className="w-6 h-6 text-red-600" />
+            )}
+            <span className={`font-bold text-base ${
+              faceVerificationResult.verified ? "text-green-800" : "text-red-800"
+            }`}>
+              {faceVerificationResult.verified ? "Face Verified" : "Face Not Matched"}
+            </span>
+          </div>
+          {faceVerificationResult.distance && (
+            <div className="text-xs text-blue-700">
+              Distance: {faceVerificationResult.distance.toFixed(3)} (Threshold: {faceVerificationResult.threshold?.toFixed(3)})
+            </div>
+          )}
+          {faceVerificationResult.error && (
+            <div className="text-xs text-red-700">{faceVerificationResult.error}</div>
+          )}
+        </div>
+      )}
+
+      {/* Camera/Upload Toggle */}
+      <div className="flex gap-3 mb-5">
+        <button
+          onClick={() => {
+            setUseCamera(false)
+            resetModal()
+            setTimeout(() => fileInputRef.current && fileInputRef.current.click(), 0)
+          }}
+          className={`px-4 py-2 rounded-full font-bold shadow transition-all duration-200 ${
+            !useCamera ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white scale-105' : 'bg-gray-200 text-gray-700'
+          }`}
+          type="button"
+          disabled={loading}
+        >
+          Upload
+        </button>
+        <button
+          onClick={() => {
+            setUseCamera(true)
+            resetModal()
+          }}
+          className={`px-4 py-2 rounded-full font-bold shadow transition-all duration-200 ${
+            useCamera ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white scale-105' : 'bg-gray-200 text-gray-700'
+          }`}
+          type="button"
+          disabled={loading}
+        >
+          Camera
+        </button>
+      </div>
+
+      {/* File Upload */}
+      {!useCamera ? (
+        <>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={e => {
+              setProofImage(e.target.files[0])
+              setConfirmSubmit(false)
+              setError('')
+              setDuplicateDetails(null)
+              setAiDetectionResult(null)
+              setStepStatus({ ai: null, duplicate: null, face: null })
+            }}
+            disabled={loading}
+          />
+          {proofImage && (
+            <div className="flex flex-col items-center mb-4">
+              <img src={URL.createObjectURL(proofImage)} alt="Preview" className="w-36 h-36 rounded-xl object-cover border-4 border-green-400 shadow-lg mb-2 transition-all duration-300" />
+              <button
+                className="text-sm text-blue-700 underline mb-1 hover:text-blue-900"
+                onClick={() => {
+                  resetModal()
+                  setTimeout(() => fileInputRef.current && fileInputRef.current.click(), 0)
+                }}
+                disabled={loading}
+              >
+                Upload Different Image
+              </button>
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          <Webcam
+            audio={false}
+            ref={webcamRef}
+            screenshotFormat="image/jpeg"
+            className="w-48 h-48 rounded-xl mb-3 border-4 border-green-400 shadow-lg"
+          />
+          <button
+            className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-6 py-2 rounded-full font-bold hover:from-emerald-600 hover:to-green-600 mb-2 shadow"
+            onClick={() => {
+              const imageSrc = webcamRef.current.getScreenshot();
+              if (imageSrc) {
+                fetch(imageSrc)
+                  .then(res => res.blob())
+                  .then(blob => {
+                    const file = new File([blob], "proof.jpg", { type: blob.type });
+                    setProofImage(file);
+                    setConfirmSubmit(false);
+                    setError('');
+                    setDuplicateDetails(null);
+                    setAiDetectionResult(null);
+                    setStepStatus({ ai: null, duplicate: null, face: null })
+                  });
+              }
+            }}
+            disabled={loading}
+          >
+            Capture
+          </button>
+          {proofImage && (
+            <div className="flex flex-col items-center mb-4">
+              <img src={URL.createObjectURL(proofImage)} alt="Preview" className="w-36 h-36 rounded-xl object-cover border-4 border-green-400 shadow-lg mb-2 transition-all duration-300" />
+              <button
+                className="text-sm text-blue-700 underline mb-1 hover:text-blue-900"
+                onClick={() => {
+                  setProofImage(null);
+                  setConfirmSubmit(false);
+                  setError('');
+                  setDuplicateDetails(null);
+                  setAiDetectionResult(null);
+                  setStepStatus({ ai: null, duplicate: null, face: null })
+                }}
+                disabled={loading}
+              >
+                Capture Again
+              </button>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Confirm before final submit */}
+      {proofImage && !confirmSubmit && (
+        <button
+          onClick={() => setConfirmSubmit(true)}
+          className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-white px-8 py-2 rounded-full font-bold hover:from-yellow-500 hover:to-yellow-600 transition mt-2 shadow-lg"
+          disabled={loading}
+        >
+          Continue
+        </button>
+      )}
+
+      {confirmSubmit && (
+        <div className="flex flex-col items-center mt-2">
+          <div className="mb-3 text-green-700 font-bold text-center text-lg">
+            Are you sure you want to submit this image as proof?
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={handleProofSubmit}
+              disabled={loading}
+              className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-8 py-2 rounded-full font-bold hover:from-green-600 hover:to-emerald-600 transition shadow-lg"
+            >
+              {loading ? <Loader2Icon className="w-5 h-5 animate-spin" /> : "Yes, Submit"}
+            </button>
+            <button
+              onClick={() => setConfirmSubmit(false)}
+              className="bg-gray-300 text-gray-700 px-8 py-2 rounded-full font-bold hover:bg-gray-400 transition shadow"
+              disabled={loading}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+)}
 
         {/* Mission history */}
         <div className="mt-16">
