@@ -22,14 +22,20 @@ from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, Dropout
 from deepface import DeepFace
 import uuid
 import warnings
+from dotenv import load_dotenv
 warnings.filterwarnings('ignore')
 
 app = Flask(__name__)
 CORS(app)
 
 # MongoDB setup
-MONGO_URI = os.getenv('MONGO_URI', 'mongodb+srv://DevPaglus:BinGo@cluster0.cjom9uq.mongodb.net/')
-client = MongoClient(MONGO_URI)
+load_dotenv()
+
+MONGODB_URI = os.getenv('MONGODB_URI')
+if not MONGODB_URI:
+    raise RuntimeError("MONGODB_URI environment variable not set")
+
+client = MongoClient(MONGODB_URI)
 db = client['bingo_app']
 user_images_collection = db['user_images']
 
