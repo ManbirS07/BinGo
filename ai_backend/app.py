@@ -53,7 +53,6 @@ print("CLIP model loaded successfully!")
 # Load AI Detection Model (using EfficientNet as base)
 print("Loading AI Detection model...")
 try:
-    # Create a simple AI detection model
     ai_detection_model = Sequential([
         EfficientNetB0(weights='imagenet', include_top=False, input_shape=(224, 224, 3)),
         GlobalAveragePooling2D(),
