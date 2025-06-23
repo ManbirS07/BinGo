@@ -6,7 +6,6 @@ pillow
 requests
 imagehash
 pymongo
-bson
 opencv-python
 scipy
 scikit-image
