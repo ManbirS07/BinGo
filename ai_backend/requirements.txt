@@ -1,7 +1,16 @@
 flask
+flask-cors
 torch
 transformers
 pillow
 requests
-flask-cors
 imagehash
+pymongo
+bson
+opencv-python
+scipy
+scikit-image
+tensorflow
+deepface
+python-dotenv
+numpy
