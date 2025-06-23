@@ -15,7 +15,7 @@ import MapPage from './pages/MapPage'
 import SuggestBinButton from './components/SuggestBinButton'
 import SuggestBin from './pages/SuggestBin'
 import DustbinMap from './pages/DustbinMap'
-
+import DailyQuest from './pages/DailyQuest'
 const App = () => {
 
 
@@ -43,6 +43,7 @@ const shouldHideNavbar =
         <Route path='/suggest-bin' element={<SuggestBin/>} />
         <Route path="/map" element={<DustbinMap />} />
           <Route path="/dustbin-map" element={<DustbinMap />} />
+          <Route path="/daily-quest" element={<DailyQuest />} />
       </Routes>
       <SuggestBinButton/>
         <ChatbotButton/>

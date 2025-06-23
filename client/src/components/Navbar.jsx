@@ -24,6 +24,7 @@ return (
       <Link onClick={() => { scrollTo(0, 0); setIsOpen(false) }} to="/leaderboard">Leaderboard</Link>
       <Link onClick={() => { scrollTo(0, 0); setIsOpen(false) }} to="/rewards">Rewards</Link>
       <Link onClick={() => { scrollTo(0, 0); setIsOpen(false) }} to="/dashboard">Profile</Link>
+      <Link onClick={() => { scrollTo(0, 0); setIsOpen(false) }} to="/daily-quest">Daily Quest</Link>
     </div>
 
     <div className='flex items-center gap-4'>

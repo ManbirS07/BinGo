@@ -6,7 +6,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 import chatRoutes from './routes/chat.js'
 import analyzeImageRoutes from './routes/analyzeImage.js'
 import dustbinRoutes from './routes/dustbin.js'
-
+// import dailyQuizRoutes from './routes/dailyQuizRoutes.js';
 dotenv.config()
 
 const app = express()
@@ -29,7 +29,8 @@ app.use('/api/chat', chatRoutes(genAI))
 app.use('/api/analyze-image', analyzeImageRoutes(genAI))
 app.use('/api/dustbins', dustbinRoutes)
 
-// Health check endpoint
+// app.use('/api', dailyQuizRoutes);
+
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'OK',
