@@ -8,6 +8,7 @@ import analyzeImageRoutes from './routes/analyzeImage.js'
 import dustbinRoutes from './routes/dustbin.js'
 import missionsRouter from './routes/missions.js'
 
+// import dailyQuizRoutes from './routes/dailyQuizRoutes.js';
 dotenv.config()
 
 const app = express()
@@ -50,6 +51,8 @@ app.use('/api/dustbins', dustbinRoutes)
 app.use('/api/missions', missionsRouter)
 
 // Health check endpoint with enhanced info
+// app.use('/api', dailyQuizRoutes);
+
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'OK',
