@@ -149,99 +149,55 @@ router.put('/user/:clerkId', validateClerkId, async (req, res) => {
 })
 // Complete a mission
 router.post('/complete/:clerkId/:missionId', validateClerkId, async (req, res) => {
-   try {
+  try {
     const { clerkId, missionId } = req.params
     const { proofUrl, missionType } = req.body
-
-    // Validate missionId
     const parsedMissionId = parseInt(missionId)
     if (isNaN(parsedMissionId)) {
       return res.status(400).json({ error: 'Valid missionId is required' })
     }
 
-    // Fetch user and mission FIRST
     const user = await User.findOne({ clerkId })
-    if (!user) {
-      return res.status(404).json({ error: 'User not found. Please register first.' })
-    }
+    if (!user) return res.status(404).json({ error: 'User not found.' })
 
     const mission = await Mission.findOne({ id: parsedMissionId }).lean()
-    if (!mission) {
-      return res.status(404).json({ error: 'Mission not found' })
-    }
-     
-    
-    // Initialize missions array if empty
-    if (!user.missions || user.missions.length === 0) {
-      const missions = await getActiveMissions()
-      user.missions = createDefaultMissions(missions)
-    }
-    
-    // Find user's mission progress
-    const userMission = user.missions.find(m => m.missionId === parsedMissionId)
+    if (!mission) return res.status(404).json({ error: 'Mission not found' })
+
+    // Find or create user's mission progress
+    let userMission = user.missions.find(m => m.missionId === parsedMissionId)
     if (!userMission) {
-      return res.status(404).json({ error: 'Mission not found in user progress' })
+      userMission = { missionId: parsedMissionId, completions: [] }
+      user.missions.push(userMission)
     }
-    
-    // Check if mission is already completed
-    if (userMission.completed) {
-      return res.status(400).json({ error: 'Mission already completed' })
+
+    // Check last completion time
+    const lastCompletion = userMission.completions.length > 0
+      ? userMission.completions[userMission.completions.length - 1].completedAt
+      : null
+
+    if (lastCompletion && (Date.now() - new Date(lastCompletion).getTime()) < 60 * 60 * 1000) {
+      // Less than 1 hour since last completion
+      return res.status(400).json({ error: 'You can only complete this mission once every hour.' })
     }
-    
-    // Special handling for streak mission
-    if (mission.title === "3-Day Streak") {
-      const currentStreak = user.updateStreak()
-      if (currentStreak < 3) {
-        return res.status(400).json({ 
-          error: 'Streak requirement not met',
-          currentStreak,
-          requiredStreak: 3
-        })
-      }
-    }
-    
-    // Complete the mission
-    userMission.completed = true
-    userMission.proofUrl = proofUrl || (missionType === 'streak' ? 'streak' : '')
-    userMission.completedAt = new Date()
-    userMission.pointsEarned = mission.reward
-    
+
+    // Add new completion
+    userMission.completions.push({
+      proofUrl: proofUrl || (missionType === 'streak' ? 'streak' : ''),
+      completedAt: new Date(),
+      pointsEarned: mission.reward
+    })
+
     // Add points and update level
     user.addPoints(mission.reward)
-    
-    // Update statistics
     user.statistics = user.statistics || { totalMissionsCompleted: 0 }
     user.statistics.totalMissionsCompleted += 1
-    
-    // Update category-specific statistics
-    const categoryStats = {
-      'Waste Disposal': () => user.statistics.wasteDisposed = (user.statistics.wasteDisposed || 0) + 1,
-      'Suggest Bin': () => user.statistics.binsRecommended = (user.statistics.binsRecommended || 0) + 1,
-      'Sorting': () => user.statistics.wasteSorted = (user.statistics.wasteSorted || 0) + 1
-    }
-    
-    const updateStat = categoryStats[mission.category]
-    if (updateStat) {
-      updateStat()
-    }
-    
-    // Check for achievements
-    const newAchievements = checkAchievements(user)
-    
-    // Add new achievements
-    user.achievements = user.achievements || []
-    user.achievements.push(...newAchievements)
-    
+
     await user.save()
-    
+
     res.json({
       success: true,
       pointsEarned: mission.reward,
       totalPoints: user.totalPoints,
-      level: user.level,
-      newAchievements,
-      streakData: user.streakData,
-      statistics: user.statistics,
       message: `Mission "${mission.title}" completed! You earned ${mission.reward} points.`
     })
   } catch (error) {

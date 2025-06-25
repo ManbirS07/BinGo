@@ -1,26 +1,14 @@
 import mongoose from 'mongoose'
 
 const missionProgressSchema = new mongoose.Schema({
-  missionId: {
-    type: Number,
-    required: true
-  },
-  completed: {
-    type: Boolean,
-    default: false
-  },
-  proofUrl: {
-    type: String,
-    default: ''
-  },
-  completedAt: {
-    type: Date,
-    default: null
-  },
-  pointsEarned: {
-    type: Number,
-    default: 0
-  }
+  missionId: { type: Number, required: true },
+  completions: [
+    {
+      proofUrl: String,
+      completedAt: Date,
+      pointsEarned: Number
+    }
+  ]
 })
 
 const userSchema = new mongoose.Schema({
