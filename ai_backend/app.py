@@ -578,6 +578,16 @@ def batch_check_optimized():
         return jsonify({"error": str(e)}), 500
 
 # ==================== SIMPLIFIED UTILITY ENDPOINTS ====================
+def to_native(obj):
+    """Recursively convert numpy types to native Python types."""
+    if isinstance(obj, dict):
+        return {k: to_native(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [to_native(v) for v in obj]
+    elif isinstance(obj, (np.generic, np.bool_)):
+        return obj.item()
+    else:
+        return obj
 
 @app.route("/verify", methods=["POST"])
 def verify_faces():
@@ -598,7 +608,8 @@ def verify_faces():
         file2.save(temp2)
         
         result = verify_faces_fast(temp1, temp2)
-        return jsonify(result)
+        result_native = to_native(result)  # <-- Convert all numpy types
+        return jsonify(result_native)
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500
