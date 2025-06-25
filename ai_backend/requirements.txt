@@ -9,7 +9,5 @@ pymongo
 opencv-python
 scipy
 scikit-image
-tensorflow
-deepface
 python-dotenv
 numpy
