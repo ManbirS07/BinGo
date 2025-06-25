@@ -11,6 +11,7 @@ import SuggestBinButton from './components/SuggestBinButton'
 import SuggestBin from './pages/SuggestBin'
 import DustbinMap from './pages/DustbinMap'
 import DailyQuest from './pages/DailyQuest'
+import Rewards from './pages/Rewards'
 
 import { UserDataProvider } from './context/userDataContext'
 
@@ -37,6 +38,7 @@ const shouldHideNavbar =
         <Route path="/map" element={<DustbinMap />} />
           <Route path="/dustbin-map" element={<DustbinMap />} />
           <Route path="/daily-quest" element={<DailyQuest />} />
+          <Route path="/rewards" element={<Rewards />} />
       </Routes>
       </UserDataProvider>
       <SuggestBinButton/>

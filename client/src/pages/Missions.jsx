@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { GiftIcon, TrophyIcon, CameraIcon, MapPinIcon, ScanIcon, CheckCircle2Icon, Loader2Icon, InfoIcon, SparklesIcon, StarIcon, AlertTriangleIcon, XCircleIcon, CheckIcon, EyeIcon, UploadIcon, RefreshCwIcon } from 'lucide-react'
+import { GiftIcon, TrophyIcon, CameraIcon, MapPinIcon, ScanIcon, CheckCircle2Icon, Loader2Icon, InfoIcon, SparklesIcon, StarIcon, AlertTriangleIcon, XCircleIcon, CheckIcon, UploadIcon, RefreshCwIcon } from 'lucide-react'
 import clsx from 'clsx'
 import Webcam from 'react-webcam'
 import { useUser } from '@clerk/clerk-react'
@@ -34,46 +34,6 @@ const funFacts = [
   "🔍 Our duplicate detection system ensures fair play for all users."
 ]
 
-const MOCK_MISSIONS = [
-  {
-    id: 1,
-    title: "Dispose Waste",
-    description: "Dispose of at least 3 pieces of litter in a public bin and upload a photo as proof of your eco-action.",
-    tags: ["Waste", "Action", "Photo"],
-    reward: 25,
-    category: "Waste Disposal",
-    color: "emerald"
-  },
-  {
-    id: 2,
-    title: "Suggest Bin",
-    description: "Suggest a new location for a public waste bin in your area to help keep the community clean.",
-    tags: ["Community", "Suggestion"],
-    reward: 15,
-    category: "Suggest Bin",
-    color: "blue"
-  },
-  {
-    id: 3,
-    title: "3-Day Streak",
-    description: "Dispose waste for 3 consecutive days to earn a streak badge and build a sustainable habit.",
-    tags: ["Streak", "Habit", "Badge"],
-    reward: 50,
-    category: "Streaks",
-    color: "amber"
-  },
-  {
-    id: 4,
-    title: "Sort Waste",
-    description: "Sort your household waste into recyclables and non-recyclables and upload a photo of your sorting.",
-    tags: ["Sorting", "Recycling", "Photo"],
-    reward: 20,
-    category: "Sorting",
-    color: "purple"
-  }
-]
-
-const todayStr = () => new Date().toISOString().slice(0, 10)
 
 const Missions = () => {
   const { user: clerkUser } = useUser()
@@ -82,15 +42,7 @@ const Missions = () => {
   const navigate = useNavigate()
   const { userData, refreshUserData } = useUserData();
 
-  // const [userMissions, setUserMissions] = useState(() =>
-  //   MOCK_MISSIONS.map(m => ({
-  //     missionId: m.id,
-  //     completed: false,
-  //     proofUrl: '',
-  //     completedAt: null
-  //   }))
-  // )
-  
+
   const missions = userData?.missions || []
   const userMissions = userData?.userMissions || [];
   console.log(userMissions)
@@ -109,6 +61,7 @@ const Missions = () => {
   const [uploadStatus, setUploadStatus] = useState('')
   const [error, setError] = useState('')
   const [duplicateDetails, setDuplicateDetails] = useState(null)
+  const [timer, setTimer] = useState(Date.now())
   const [aiDetectionResult, setAiDetectionResult] = useState(null)
   const [faceVerificationResult, setFaceVerificationResult] = useState(null)
   const [backendHealth, setBackendHealth] = useState('unknown')
@@ -119,11 +72,16 @@ const Missions = () => {
   })
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setFactIdx(idx => (idx + 1) % funFacts.length)
-    }, 6000)
-    return () => clearInterval(interval)
-  }, [])
+  const interval = setInterval(() => setTimer(Date.now()), 1000)
+  return () => clearInterval(interval)
+}, [])
+
+useEffect(() => {
+  const interval = setInterval(() => {
+    setFactIdx(idx => (idx + 1) % funFacts.length)
+  }, 6000) // Change fact every 6 seconds
+  return () => clearInterval(interval)
+}, [funFacts.length])
 
   useEffect(() => {
     checkBackendHealth()
@@ -142,12 +100,43 @@ const Missions = () => {
     }
   }
 
-  const getStatus = (missionId) => {
-    const um = userMissions.find(m => m.missionId === missionId)
-    if (!um) return 'not_started'
-    if (um.completed) return 'completed'
-    return 'not_started'
-  }
+const getStatus = (missionId) => {
+  // Always use cooldown logic
+  const last = getLastCompletionTime(missionId)
+  if (!last) return 'not_started'
+  if ((Date.now() - last.getTime()) < 60 * 60 * 1000) return 'cooldown'
+  return 'ready'
+}
+
+// Get total points earned for a mission
+const getMissionPoints = (missionId) => {
+  const um = userMissions.find(m => m.missionId === missionId)
+  if (!um || !um.completions) return 0
+  return um.completions.reduce((sum, c) => sum + (c.pointsEarned || 0), 0)
+}
+  
+// Helper: Get last completion time for a mission
+const getLastCompletionTime = (missionId) => {
+  const um = userMissions.find(m => m.missionId === missionId)
+  if (!um || !um.completions || um.completions.length === 0) return null
+  // Assume completions is sorted, get the last one
+  return new Date(um.completions[um.completions.length - 1].completedAt)
+}
+
+// Helper: Time left in ms
+const timeLeftMs = (missionId) => {
+  const last = getLastCompletionTime(missionId)
+  if (!last) return 0
+  const diff = 60 * 60 * 1000 - (Date.now() - last.getTime())
+  return diff > 0 ? diff : 0
+}
+
+// Helper: Format ms to mm:ss
+const formatMs = (ms) => {
+  const min = Math.floor(ms / 60000)
+  const sec = Math.floor((ms % 60000) / 1000)
+  return `${min}:${sec.toString().padStart(2, '0')}`
+}
 
   const completedCount = userMissions.filter(m => m.completed).length
   const totalCount = missions.length
@@ -341,6 +330,11 @@ refreshUserData();
     setStepStatus({ ai: null, duplicate: null, face: null })
   }
 
+  const totalPoints = userMissions.reduce(
+  (sum, m) => sum + (m.completions ? m.completions.reduce((s, c) => s + (c.pointsEarned || 0), 0) : 0),
+  0
+)
+
   const streakDays = userMissions.find(m => m.missionId === 3 && m.completed)
     ? 3
     : userMissions.find(m => m.missionId === 3)
@@ -366,29 +360,21 @@ refreshUserData();
   )
 
   const getMissionButtons = (mission) => {
-    const status = getStatus(mission.id)
-    if (status === 'completed') {
-      return (
-        <div className="flex gap-2">
-          <button
-            onClick={() => handleMissionAction(mission, 'view')}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold shadow-lg transition-all duration-300 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white transform hover:scale-105"
-          >
-            <EyeIcon className="w-4 h-4" />
-            View Proof
-          </button>
-          {mission.title !== "3-Day Streak" && (
-            <button
-              onClick={() => handleMissionAction(mission, 'upload')}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold shadow-lg transition-all duration-300 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white transform hover:scale-105"
-            >
-              <RefreshCwIcon className="w-4 h-4" />
-              Retry
-            </button>
-          )}
-        </div>
-      )
-    }
+  const status = getStatus(mission.id)
+  const msLeft = timeLeftMs(mission.id)
+
+ if (status === 'cooldown') {
+    return (
+      <button
+        disabled
+        className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold shadow-lg bg-gray-700 text-gray-300 cursor-not-allowed"
+      >
+        <RefreshCwIcon className="w-5 h-5 animate-spin" />
+        Available in {formatMs(msLeft)}
+      </button>
+    )
+  }
+  
 
     if (mission.title === "Suggest Bin") {
       return (
@@ -497,8 +483,8 @@ refreshUserData();
               </div>
               <div className="text-center">
                 <div className="text-3xl font-black text-amber-400">
-                  {userMissions.filter(m => m.completed).reduce((sum, m) => sum + (missions.find(ms => ms.id === m.missionId)?.reward || 0), 0)}
-                </div>
+                  {totalPoints}
+                   </div>
                 <div className="text-sm text-gray-400">Points Earned</div>
               </div>
               <div className="w-32">
@@ -585,6 +571,9 @@ refreshUserData();
                         <span>{mission.reward}</span>
                       </div>
                       <div className="text-xs text-gray-400 mt-1">points</div>
+                        <div className="text-xs text-emerald-300 mt-1">
+    Earned: {getMissionPoints(mission.id)}
+  </div>
                     </div>
                   </div>
 
