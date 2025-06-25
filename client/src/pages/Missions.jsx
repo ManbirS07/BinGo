@@ -5,6 +5,8 @@ import clsx from 'clsx'
 import Webcam from 'react-webcam'
 import { useUser } from '@clerk/clerk-react'
 import { verifyFace } from '../utils/verifyFace'
+import { useUserData } from '../context/userDataContext'
+import { completeMission } from '../services/MissionsService'
 
 const CLOUDINARY_UPLOAD_PRESET = 'BinGo_CodePaglus'
 const CLOUDINARY_CLOUD_NAME = 'dgclo6bft'
@@ -78,17 +80,20 @@ const Missions = () => {
   const profileImage = clerkUser?.unsafeMetadata?.profileImage
   const userId = clerkUser?.id || 'mock-user'
   const navigate = useNavigate()
+  const { userData, refreshUserData } = useUserData();
 
-  const [userMissions, setUserMissions] = useState(() =>
-    MOCK_MISSIONS.map(m => ({
-      missionId: m.id,
-      completed: false,
-      proofUrl: '',
-      completedAt: null
-    }))
-  )
-
-  const [missions] = useState(MOCK_MISSIONS)
+  // const [userMissions, setUserMissions] = useState(() =>
+  //   MOCK_MISSIONS.map(m => ({
+  //     missionId: m.id,
+  //     completed: false,
+  //     proofUrl: '',
+  //     completedAt: null
+  //   }))
+  // )
+  
+  const missions = userData?.missions || []
+  const userMissions = userData?.userMissions || [];
+  console.log(userMissions)
   const [selectedMission, setSelectedMission] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [modalType, setModalType] = useState('upload')
@@ -171,27 +176,22 @@ const Missions = () => {
   const handleStreakComplete = () => {
     setLoading(true)
     setUploadStatus('Updating streak progress...')
-    setTimeout(() => {
-      setUserMissions(prev =>
-        prev.map(m =>
-          m.missionId === selectedMission.id
-            ? {
-                ...m,
-                completed: true,
-                completedAt: todayStr(),
-                proofUrl: 'streak'
-              }
-            : m
-        )
-      )
-      setShowModal(false)
-      setShowConfetti(true)
-      setMotivation(`🔥 Amazing! 3-day streak completed! You've earned ${selectedMission.reward} points and built a great habit! 🏆`)
-      setTimeout(() => setShowConfetti(false), 3000)
-      setLoading(false)
-      setUploadStatus('')
-    }, 1500)
+    setTimeout(async () => {
+    await handleMissionComplete(selectedMission.id, 'streak');
+    setShowModal(false);
+    setShowConfetti(true);
+    setMotivation(`🔥 Amazing! 3-day streak completed! You've earned ${selectedMission.reward} points and built a great habit! 🏆`);
+    setTimeout(() => setShowConfetti(false), 3000);
+    setLoading(false);
+    setUploadStatus('');
+  }, 1500);
   }
+
+  
+const handleMissionComplete = async (missionId, proofUrl) => {
+await completeMission(missionId, userId, proofUrl);
+refreshUserData(); 
+};
 
   const handleProofSubmit = async () => {
     setConfirmSubmit(false)
@@ -314,31 +314,18 @@ const Missions = () => {
       } else {
         setStepStatus(s => ({ ...s, face: 'skip' }))
       }
-
       setUploadStatus('All checks passed! Completing mission...')
-      setTimeout(() => {
-        setUserMissions(prev =>
-          prev.map(m =>
-            m.missionId === selectedMission.id
-              ? {
-                  ...m,
-                  completed: true,
-                  proofUrl: uploadedUrl,
-                  completedAt: todayStr()
-                }
-              : m
-          )
-        )
-        setShowModal(false)
-        setShowConfetti(true)
-        setMotivation(`🎉 Mission completed successfully! You've earned ${selectedMission.reward} points and made your city cleaner! 🌱`)
-        setTimeout(() => setShowConfetti(false), 3000)
-      }, 1200)
+      setTimeout(async () => {
 
+      await handleMissionComplete(selectedMission.id, uploadedUrl);
+      setShowModal(false);
+      setShowConfetti(true);
+      setMotivation(`🎉 Mission completed successfully! You've earned ${selectedMission.reward} points and made your city cleaner! 🌱`);
+      setTimeout(() => setShowConfetti(false), 3000);
+      }, 1200);
     } catch (err) {
       setError(`❌ Upload Failed\n\n${err.message}\n\nPlease check your internet connection and try again.`)
     }
-
     setLoading(false)
     setUploadStatus('')
   }

@@ -16,9 +16,10 @@ import SuggestBinButton from './components/SuggestBinButton'
 import SuggestBin from './pages/SuggestBin'
 import DustbinMap from './pages/DustbinMap'
 import DailyQuest from './pages/DailyQuest'
+
+import { UserDataProvider } from './context/userDataContext'
+
 const App = () => {
-
-
 const location = useLocation()
 const path = location.pathname
 
@@ -32,6 +33,7 @@ const shouldHideNavbar =
     <>
     <Toaster/>
      {!shouldHideNavbar && <Navbar/>}
+     <UserDataProvider>
       <Routes>
         <Route path="/" element={<Home/>} />
         <Route path="/missions" element={<Missions/>} />
@@ -45,10 +47,11 @@ const shouldHideNavbar =
           <Route path="/dustbin-map" element={<DustbinMap />} />
           <Route path="/daily-quest" element={<DailyQuest />} />
       </Routes>
+      </UserDataProvider>
       <SuggestBinButton/>
         <ChatbotButton/>
        {!shouldHideNavbar && <Footer/>}
-    </>
+       </>
   )
 }
 
