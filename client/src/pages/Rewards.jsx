@@ -4,10 +4,10 @@ import { useUserData } from '../context/userDataContext'
 
 
 const REWARDS = [
-  { id: 1, name: "Eco-Friendly Tote Bag", cost: 100, description: "Sustainable cotton tote for your daily needs", icon: "🛍️", popular: false },
-  { id: 2, name: "Reusable Water Bottle", cost: 21, description: "Keep hydrated while saving the planet", icon: "💧", popular: true },
-  { id: 3, name: "Plant a Tree in Your Name", cost: 300, description: "Make a lasting environmental impact", icon: "🌳", popular: false },
-  { id: 4, name: "Discount Coupon", cost: 150, description: "20% off on eco-friendly products", icon: "🎟️", popular: true }
+  { id: 1, name: "Eco-Friendly Tote Bag", cost: 15, description: "Sustainable cotton tote for your daily needs", icon: "🛍️", popular: false },
+  { id: 2, name: "Reusable Water Bottle", cost: 10, description: "Keep hydrated while saving the planet", icon: "💧", popular: true },
+  { id: 3, name: "Plant a Tree in Your Name", cost: 15, description: "Make a lasting environmental impact", icon: "🌳", popular: false },
+  { id: 4, name: "Discount Coupon", cost: 20, description: "20% off on eco-friendly products", icon: "🎟️", popular: true }
 ]
 
 const Rewards = () => {
