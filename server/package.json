@@ -19,6 +19,8 @@
   "license": "ISC",
   "description": "BinGo Assistant - AI-powered waste management chatbot using Gemini AI",
   "dependencies": {
+    "@clerk/backend": "^2.2.0",
+    "@clerk/clerk-sdk-node": "^4.13.23",
     "@google/generative-ai": "^0.21.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
