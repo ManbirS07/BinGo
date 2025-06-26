@@ -46,6 +46,7 @@ const Missions = () => {
   const missions = userData?.missions || []
   const userMissions = userData?.userMissions || [];
   console.log(userMissions)
+
   const [selectedMission, setSelectedMission] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [modalType, setModalType] = useState('upload')
@@ -330,10 +331,11 @@ refreshUserData();
     setStepStatus({ ai: null, duplicate: null, face: null })
   }
 
-  const totalPoints = userMissions.reduce(
-  (sum, m) => sum + (m.completions ? m.completions.reduce((s, c) => s + (c.pointsEarned || 0), 0) : 0),
-  0
-)
+//   const totalPoints = userMissions.reduce(
+//   (sum, m) => sum + (m.completions ? m.completions.reduce((s, c) => s + (c.pointsEarned || 0), 0) : 0),
+//   0
+// )
+    const totalPoints = userData?.user?.totalPoints
 
   const streakDays = userMissions.find(m => m.missionId === 3 && m.completed)
     ? 3

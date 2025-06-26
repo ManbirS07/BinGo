@@ -9,6 +9,8 @@ import dustbinRoutes from './routes/dustbin.js'
 import missionsRouter from './routes/missions.js'
 import dailyQuestRoutes from './routes/dailyQuest.js';
 import { ClerkExpressRequireAuth } from '@clerk/clerk-sdk-node';
+import rewardsRoute from './routes/rewards.js'
+
 dotenv.config()
 
 const app = express()
@@ -54,6 +56,7 @@ app.use('/api/analyze-image', analyzeImageRoutes(genAI))
 app.use('/api/dustbins', dustbinRoutes)
 app.use('/api/missions', missionsRouter)
 app.use('/api/daily-quest', dailyQuestRoutes);
+app.use('/api/rewards', rewardsRoute)
 
 // Health check endpoint with enhanced info
 
