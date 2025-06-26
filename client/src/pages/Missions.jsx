@@ -48,6 +48,7 @@ const Missions = () => {
   
   const userProfile = userData?.user || {}
   console.log(userMissions)
+
   const [selectedMission, setSelectedMission] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [modalType, setModalType] = useState('upload')
@@ -332,7 +333,9 @@ refreshUserData();
     setStepStatus({ ai: null, duplicate: null, face: null })
   }
 
+
   const totalPoints = userProfile.totalPoints || 0
+  
   const streakDays = userMissions.find(m => m.missionId === 3 && m.completed)
     ? 3
     : userMissions.find(m => m.missionId === 3)
