@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { useUser } from '@clerk/clerk-react'
-import { GiftIcon, LeafIcon, TrophyIcon, CameraIcon, SparklesIcon, UserIcon, MailIcon, PhoneIcon, CalendarIcon } from 'lucide-react'
+import { GiftIcon, LeafIcon, TrophyIcon, CameraIcon, SparklesIcon, UserIcon, MailIcon, PhoneIcon, CalendarIcon, EarthIcon } from 'lucide-react'
 import ProfilePopup from '../components/ProfilePopup'
 import axios from 'axios'
+import { useUserData } from '../context/userDataContext'
 
 const CLOUDINARY_UPLOAD_PRESET = 'BinGo_CodePaglus'
 const CLOUDINARY_CLOUD_NAME = 'dgclo6bft'
@@ -13,6 +14,15 @@ const Dashboard = () => {
   const [showPopup, setShowPopup] = useState(false)
   const [showDetails, setShowDetails] = useState(false)
   const [editMode, setEditMode] = useState(false)
+  const { userData} = useUserData();
+
+  const userMissions = userData?.userMissions
+  const toDoMissions = userData?.missions
+  const missions = Array.isArray(userMissions) ? userMissions : [];
+  
+  const completed = missions.filter( o => o.completed == true)
+  const completedCount = completed.length
+
   const [form, setForm] = useState({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
@@ -132,28 +142,33 @@ const Dashboard = () => {
         {/* User Info and Stats */}
         <div className="text-left w-full">
           <h1 className="text-4xl font-extrabold text-green-200 mb-2 drop-shadow-lg flex items-center gap-2">
-            Welcome, {user?.firstName || 'Eco Hero'} <span className="animate-wiggle">👋</span>
+            Welcome, {user?.firstName || 'Eco Hero'}  <span className="animate-wiggle">👋</span>
           </h1>
           <p className="text-gray-200 text-lg mb-6 font-medium">
             You're on a mission to keep your city clean and green! <span className="text-green-300">#BinGo</span>
           </p>
 
           {/* Animated Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-8">
             <div className="bg-gradient-to-br from-yellow-400/20 to-yellow-100/10 p-6 rounded-2xl shadow-xl border border-yellow-200/30 flex flex-col items-center animate-fade-in-up">
               <GiftIcon className="w-8 h-8 text-yellow-300 mb-2 animate-spin-slow" />
-              <p className="font-extrabold text-2xl text-yellow-200">123</p>
+              <p className="font-extrabold text-2xl text-yellow-200">{userData?.user?.totalPoints}</p>
               <p className="text-sm text-yellow-100">Points</p>
             </div>
             <div className="bg-gradient-to-br from-lime-400/20 to-lime-100/10 p-6 rounded-2xl shadow-xl border border-lime-200/30 flex flex-col items-center animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
               <LeafIcon className="w-8 h-8 text-lime-300 mb-2 animate-pulse" />
-              <p className="font-extrabold text-2xl text-lime-200">47 kg</p>
-              <p className="text-sm text-lime-100">Waste Reduced</p>
+              <p className="font-extrabold text-2xl text-lime-200">{userData?.user?.statistics.wasteDisposed}</p>
+              <p className="text-sm text-lime-100 text-center">Waste Disposed (Kg)</p>
             </div>
             <div className="bg-gradient-to-br from-orange-400/20 to-orange-100/10 p-6 rounded-2xl shadow-xl border border-orange-200/30 flex flex-col items-center animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
               <TrophyIcon className="w-8 h-8 text-orange-300 mb-2 animate-bounce" />
               <p className="font-extrabold text-2xl text-orange-200">5</p>
               <p className="text-sm text-orange-100">Badges Earned</p>
+            </div>
+            <div className="bg-gradient-to-br from-blue-500 to-blue-500/10 p-6 rounded-2xl shadow-xl border border-orange-200/30 flex flex-col items-center animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+              <EarthIcon className="w-8 h-8 text-blue-300 mb-2 animate-bounce" />
+              <p className="font-extrabold text-2xl text-orange-200 text-center">{userData?.user?.statistics.binsRecommended}</p>
+              <p className="text-sm text-orange-100 text-center">Dustbins Recommended</p>
             </div>
           </div>
 
@@ -262,24 +277,37 @@ const Dashboard = () => {
               )}
             </div>
           )}
-
-          {/* Missions List */}
-          <div className="mt-8">
-            <h2 className="text-2xl font-semibold text-white mb-4 flex items-center gap-2">
-              <SparklesIcon className="w-6 h-6 text-green-300" /> Your Missions
-            </h2>
-            <ul className="space-y-3">
-              <li className="bg-white/10 p-4 rounded-lg border border-white/10 flex items-center gap-2 animate-fade-in-up">
-                <span className="text-green-300 text-xl">✅</span> Collected plastics near Community Park
-              </li>
-              <li className="bg-white/10 p-4 rounded-lg border border-white/10 flex items-center gap-2 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-                <span className="text-green-300 text-xl">✅</span> Suggested bin location near Main Street
-              </li>
-              <li className="bg-white/10 p-4 rounded-lg border border-white/10 flex items-center gap-2 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-                <span className="text-green-300 text-xl">✅</span> Completed 3-day streak mission
-              </li>
-            </ul>
+{/* Missions List */}
+<div className="mt-10">
+  <h2 className="text-2xl font-bold text-green-200 mb-6 flex items-center gap-2">
+    <SparklesIcon className="w-6 h-6 text-green-400" /> 
+    <span className="tracking-wide">Your Completed Missions ({completedCount})</span>
+  </h2>
+  <div>
+    {completed.map((item, idx) => {
+      const mission = toDoMissions?.find(m => m.id === item.missionId);
+      return (
+        <div
+          key={item.missionId || idx}
+          className="bg-gradient-to-br from-green-800 via-green-900 to-emerald-900 rounded-2xl p-6 mb-5 shadow-xl border border-green-700/40 transition-transform hover:scale-[1.02]"
+        >
+          <span className="font-extrabold text-lg text-green-300 block mb-2">
+            Mission #{item.missionId}
+          </span>
+          {mission && (
+            <div className="text-green-100 font-medium mb-2">{mission.title}</div>
+          )}
+          {mission && (
+            <div className="text-green-200 text-sm mb-3">{mission.description}</div>
+          )}
+          <div className="text-green-400 font-semibold">
+            Points earned: <span className="text-green-100">{mission?.reward}</span>
           </div>
+        </div>
+      );
+    })}
+  </div>
+</div>
         </div>
       </div>
 
