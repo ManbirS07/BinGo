@@ -1,5 +1,4 @@
-const API_URL = 'http://localhost:4000/api'
-
+const API_URL = 'http://localhost:4000/api/missions'
 export const fetchMissions = async () => {
   const res = await fetch(`${API_URL}/missions`)
   return res.json()
@@ -19,7 +18,7 @@ export const joinMission = async (missionId, userId) => {
 }
 
 export const completeMission = async (missionId, userId, proofUrl) => {
-  await fetch(`${API_URL}/complete-mission`, {
+  await fetch(`${API_URL}/complete/${userId}/${missionId}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ missionId, userId, proofUrl })

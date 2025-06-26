@@ -1,14 +1,29 @@
-import { useState } from 'react'
+import { useState,useEffect } from 'react'
 import { assets } from '../assets/assets'
 import { Link, useNavigate } from 'react-router-dom'
 import { MenuIcon, SearchIcon, GiftIcon, XIcon } from 'lucide-react'
 import { useClerk, UserButton, useUser } from '@clerk/clerk-react'
+
 
 const Navbar = () => {
 const [isOpen, setIsOpen] = useState(false)
 const { user } = useUser()
 const { openSignIn } = useClerk()
 const navigate = useNavigate()
+
+  useEffect(() => {
+    if (user) {
+      fetch(`http://localhost:4000/api/missions/user/${user.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: user.primaryEmailAddress?.emailAddress || user.emailAddresses?.[0]?.emailAddress,
+          name: user.fullName || user.username || '',
+          profileImage: user.imageUrl || ''
+        })
+      })
+    }
+  }, [user])
 
 return (
 <div className='fixed top-0 left-0 z-50 w-full flex items-center justify-center px-6 md:px-16 lg:px-36 py-5'>
