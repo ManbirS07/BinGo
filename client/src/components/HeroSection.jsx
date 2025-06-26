@@ -368,9 +368,9 @@ const HeroSection = () => {
           transition={{ delay: 0.6, duration: 0.8 }}
         >
           <p className='text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-green-300 to-emerald-300 bg-clip-text text-transparent mb-2'>
-            Snap, Bin, Win !!
+            Snap it . Bin it . Win it .
           </p>
-          <div className='w-16 sm:w-20 lg:w-24 h-1 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full'></div>
+          <div className='w-16 sm:w-20 lg:w-45 h-1 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full'></div>
         </motion.div>
 
         <motion.p
@@ -379,7 +379,7 @@ const HeroSection = () => {
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.8, duration: 0.8 }}
         >
-          Take a live photo of your eco-action, verify through AI, and rise on the leaderboard. Make waste count and earn badges, points, and real-world rewards.
+          Take a live photo of your BinGo-action, verify through AI, and rise on the leaderboard. Make waste count and earn badges, points, and real-world rewards.
         </motion.p>
 
         <motion.button
