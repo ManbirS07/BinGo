@@ -1,7 +1,7 @@
 import { useState,useEffect } from 'react'
 import { assets } from '../assets/assets'
 import { Link, useNavigate } from 'react-router-dom'
-import { MenuIcon, SearchIcon, GiftIcon, XIcon } from 'lucide-react'
+import { MenuIcon, GiftIcon, XIcon } from 'lucide-react'
 import { useClerk, UserButton, useUser } from '@clerk/clerk-react'
 
 
@@ -43,7 +43,6 @@ return (
     </div>
 
     <div className='flex items-center gap-4'>
-      <SearchIcon className='max-md:hidden w-6 h-6 cursor-pointer' />
       {
         !user ? (
           <button onClick={openSignIn} className='px-4 py-1 sm:px-7 sm:py-2 bg-green-600 hover:bg-green-500 transition rounded-full font-medium text-white cursor-pointer'>
