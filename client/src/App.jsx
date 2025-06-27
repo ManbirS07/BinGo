@@ -13,6 +13,7 @@ import DailyQuest from './pages/DailyQuest'
 import Rewards from './pages/Rewards'
 import Leaderboard from './pages/LeaderBoard'
 import { UserDataProvider } from './context/userDataContext'
+import SignInPage from './pages/SignInPage'
 
 const App = () => {
 const location = useLocation()
@@ -39,6 +40,7 @@ const shouldHideNavbar =
           <Route path="/daily-quest" element={<DailyQuest />} />
           <Route path="/rewards" element={<Rewards />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/sign-in" element={<SignInPage />} />
 
       </Routes>
       </UserDataProvider>
