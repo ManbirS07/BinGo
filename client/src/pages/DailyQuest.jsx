@@ -161,7 +161,7 @@ const percentage = (score !== null && questions.length > 0)
             <div className="w-24 h-24 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-emerald-500/30 transform hover:scale-105 transition-transform duration-300">
               <span className="text-4xl">🧠</span>
             </div>
-            <h1 className="text-5xl font-bold text-white mb-4 bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+            <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
               Daily Quest
             </h1>
             <p className="text-slate-400 text-xl">Test your environmental knowledge and earn rewards</p>

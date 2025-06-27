@@ -3,7 +3,6 @@ import Navbar from './components/Navbar'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import Home from './pages/Home'
 import {Toaster } from 'react-hot-toast'
-import Footer from './components/Footer'
 import Dashboard from './pages/Dashboard'
 import Missions from './pages/Missions'
 import ChatbotButton from './components/ChatbotButton'
@@ -45,7 +44,7 @@ const shouldHideNavbar =
       </UserDataProvider>
       <SuggestBinButton/>
         <ChatbotButton/>
-       {!shouldHideNavbar && <Footer/>}
+       {!shouldHideNavbar }
        </>
   )
 }
