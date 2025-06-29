@@ -13,7 +13,11 @@ import DailyQuest from './pages/DailyQuest'
 import Rewards from './pages/Rewards'
 import Leaderboard from './pages/LeaderBoard'
 import { UserDataProvider } from './context/userDataContext'
+
+import { Invite } from './pages/Invitation'
+
 import SignInPage from './pages/SignInPage'
+
 
 const App = () => {
 const location = useLocation()
@@ -36,12 +40,13 @@ const shouldHideNavbar =
         <Route path="/dashboard" element={<Dashboard/>} />
         <Route path='/suggest-bin' element={<SuggestBin/>} />
         <Route path="/map" element={<DustbinMap />} />
-          <Route path="/dustbin-map" element={<DustbinMap />} />
-          <Route path="/daily-quest" element={<DailyQuest />} />
-          <Route path="/rewards" element={<Rewards />} />
+        <Route path="/dustbin-map" element={<DustbinMap />} />
+        <Route path="/daily-quest" element={<DailyQuest />} />
+        <Route path="/rewards" element={<Rewards />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/sign-in" element={<SignInPage />} />
 
+        <Route path="/invitation-form" element ={<Invite />}></Route>
       </Routes>
       </UserDataProvider>
       <SuggestBinButton/>

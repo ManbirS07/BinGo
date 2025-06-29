@@ -50,7 +50,7 @@ return (
         ) : (
           <UserButton>
             <UserButton.MenuItems>
-              <UserButton.Action label='My Rewards' labelIcon={<GiftIcon width={15} />} onClick={() => navigate('/my-rewards')} />
+              <UserButton.Action label='Invite Friends' labelIcon={<GiftIcon width={15} />} onClick={() => navigate('/invitation-form')} />
             </UserButton.MenuItems>
           </UserButton>
         )
