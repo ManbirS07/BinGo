@@ -1,20 +1,19 @@
 import React, { useState, useEffect } from 'react'
-import { Gift, ArrowDownCircle, ArrowUpCircle, Coins, Trophy, Sparkles, CheckCircle, XCircle, History, Star } from 'lucide-react'
+import { Gift, ArrowUpCircle, Coins, Trophy, Sparkles, CheckCircle, XCircle, History, Star } from 'lucide-react'
 import { useUserData } from '../context/userDataContext'
 
 
 const REWARDS = [
-  { id: 1, name: "Eco-Friendly Tote Bag", cost: 15, description: "Sustainable cotton tote for your daily needs", icon: "🛍️", popular: false },
-  { id: 2, name: "Reusable Water Bottle", cost: 10, description: "Keep hydrated while saving the planet", icon: "💧", popular: true },
-  { id: 3, name: "Plant a Tree in Your Name", cost: 15, description: "Make a lasting environmental impact", icon: "🌳", popular: false },
-  { id: 4, name: "Discount Coupon", cost: 20, description: "20% off on eco-friendly products", icon: "🎟️", popular: true }
+  { id: 1, name: "Eco-Friendly Tote Bag", cost: 25, description: "Sustainable cotton tote for your daily needs", icon: "🛍️", popular: false },
+  { id: 2, name: "Reusable Water Bottle", cost: 30, description: "Keep hydrated while saving the planet", icon: "💧", popular: true },
+  { id: 3, name: "Plant a Tree in Your Name", cost: 35, description: "Make a lasting environmental impact", icon: "🌳", popular: false },
+  { id: 4, name: "Discount Coupon", cost: 40, description: "20% off on eco-friendly products", icon: "🎟️", popular: true }
 ]
 
 const API_URL = 'http://localhost:4000/api/rewards'
 const Rewards = () => {
  
   const { userData, refreshUserData } = useUserData()
-  const userMissions = userData?.userMissions || []
 
   // Calculate total and available points
   const totalPoints = Number(userData?.user?.totalPoints) || 0

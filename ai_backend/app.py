@@ -87,7 +87,6 @@ def load_image_fast(source):
 @lru_cache(maxsize=128)
 def get_clip_embedding_cached(image_hash):
     """Cached CLIP embedding computation"""
-    # This is a placeholder - in practice, you'd need to implement proper caching
     pass
 
 def get_clip_embedding_fast(pil_image):
@@ -272,7 +271,6 @@ def is_duplicate_fast(hash1, hash2, embedding1, embedding2, phash_threshold=5, c
         
         return False, None, 0.0
     except Exception as e:
-        print(f"Duplicate detection error: {str(e)}")
         return False, None, 0.0
 
 # ==================== OPTIMIZED DATABASE OPERATIONS ====================

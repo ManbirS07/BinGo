@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useUser } from '@clerk/clerk-react'
 import { 
   GiftIcon, 
-  LeafIcon, 
-  TrophyIcon, 
+  LeafIcon,  
   CameraIcon, 
   SparklesIcon, 
   UserIcon, 
@@ -12,24 +11,17 @@ import {
   CalendarIcon, 
   EarthIcon,
   CheckCircle,
-  Star,
   Target,
   Zap,
   Award,
   TrendingUp,
   Flame,
-  BarChart3,
   Medal,
   Crown,
-  Calendar,
   Activity,
   Recycle,
-  MapPin,
   Clock,
-  Sparkle,
-  Shield,
   Trophy,
-  Users,
   Heart
 } from 'lucide-react'
 import ProfilePopup from '../components/ProfilePopup'
@@ -65,7 +57,6 @@ const Dashboard = () => {
   const statistics = userProfile.statistics || {}
   const level = userProfile.level || 1
   const totalPoints = userProfile.totalPoints || 0
-  const nextLevelPoints = level * 100
   const currentLevelProgress = totalPoints % 100
   const progressPercentage = (currentLevelProgress / 100) * 100
 
@@ -130,10 +121,10 @@ const Dashboard = () => {
   }
 
   const getLevelTitle = (level) => {
-    if (level >= 20) return 'Eco Legend'
+    if (level >= 20) return 'BinGo Legend'
     if (level >= 15) return 'Green Master'
     if (level >= 10) return 'Waste Warrior'
-    if (level >= 5) return 'Eco Champion'
+    if (level >= 5) return 'BinGo Champion'
     return 'Green Rookie'
   }
 
@@ -194,7 +185,7 @@ const Dashboard = () => {
           {/* Welcome Message with enhanced styling */}
           <div className="text-center mb-8">
             <h1 className="text-4xl lg:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-200 via-blue-200 to-yellow-200 mb-3 drop-shadow-2xl flex items-center justify-center gap-3">
-              <span className='ml-14'>Welcome</span>{user?.firstName || userProfile.name || 'Eco Hero'}  
+              <span className='ml-14'>Welcome</span>{user?.firstName || userProfile.name || 'BinGo Hero'}  
               <span className="animate-wiggle text-4xl">👋</span>
             </h1>
             <p className="text-gray-200 text-lg mb-4 font-medium">

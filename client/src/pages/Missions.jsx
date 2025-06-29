@@ -30,7 +30,7 @@ const funFacts = [
   "🌱 Composting food waste reduces methane emissions from landfills.",
   "📍 Suggesting new bin locations helps keep your city cleaner!",
   "🌍 Every small action counts towards a greener planet.",
-  "🤖 AI detection helps prevent fake submissions and ensures authentic eco-actions.",
+  "🤖 AI detection helps prevent fake submissions and ensures authentic BinGo-actions.",
   "🔍 Our duplicate detection system ensures fair play for all users."
 ]
 
@@ -238,7 +238,7 @@ refreshUserData();
       })
       if (aiData.ai_generated && aiData.confidence > 0.7) {
         setStepStatus(s => ({ ...s, ai: 'fail' }))
-        setError(`❌ AI-Generated Image Detected!\n\nThis image appears to be artificially generated with ${(aiData.confidence * 100).toFixed(1)}% confidence.\n\nFor fair play, please upload authentic photos of your actual eco-actions.`)
+        setError(`❌ AI-Generated Image Detected!\n\nThis image appears to be artificially generated with ${(aiData.confidence * 100).toFixed(1)}% confidence.\n\nFor fair play, please upload authentic photos of your actual BinGo-actions.`)
         setUploadStatus('')
         setLoading(false)
         return
@@ -450,10 +450,10 @@ refreshUserData();
 
           {/* Header */}
           <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 mb-4 text-center">
-            Eco Missions
+            BinGo Missions
           </h1>
           <p className="text-xl text-gray-300 mb-6 text-center max-w-2xl">
-            Complete eco-missions, earn rewards, and make a positive impact on the environment!
+            Complete BinGo missions, earn rewards, and make a positive impact on the environment!
           </p>
 
           {/* Fun Fact Ticker */}
