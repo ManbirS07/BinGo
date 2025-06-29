@@ -10,6 +10,7 @@ import missionsRouter from './routes/missions.js'
 import dailyQuestRoutes from './routes/dailyQuest.js';
 import { ClerkExpressRequireAuth } from '@clerk/clerk-sdk-node';
 import rewardsRoute from './routes/rewards.js'
+import leaderboardRoutes from './routes/leaderboard.js'
 
 dotenv.config()
 
@@ -57,6 +58,8 @@ app.use('/api/dustbins', dustbinRoutes)
 app.use('/api/missions', missionsRouter)
 app.use('/api/daily-quest', dailyQuestRoutes);
 app.use('/api/rewards', rewardsRoute)
+app.use('/api/leaderboard', leaderboardRoutes)
+
 
 // Health check endpoint with enhanced info
 

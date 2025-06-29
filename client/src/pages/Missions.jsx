@@ -45,6 +45,8 @@ const Missions = () => {
 
   const missions = userData?.missions || []
   const userMissions = userData?.userMissions || [];
+  
+  const userProfile = userData?.user || {}
   console.log(userMissions)
 
   const [selectedMission, setSelectedMission] = useState(null)
@@ -331,12 +333,9 @@ refreshUserData();
     setStepStatus({ ai: null, duplicate: null, face: null })
   }
 
-//   const totalPoints = userMissions.reduce(
-//   (sum, m) => sum + (m.completions ? m.completions.reduce((s, c) => s + (c.pointsEarned || 0), 0) : 0),
-//   0
-// )
-    const totalPoints = userData?.user?.totalPoints
 
+  const totalPoints = userProfile.totalPoints || 0
+  
   const streakDays = userMissions.find(m => m.missionId === 3 && m.completed)
     ? 3
     : userMissions.find(m => m.missionId === 3)

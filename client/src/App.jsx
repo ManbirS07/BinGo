@@ -12,7 +12,7 @@ import SuggestBin from './pages/SuggestBin'
 import DustbinMap from './pages/DustbinMap'
 import DailyQuest from './pages/DailyQuest'
 import Rewards from './pages/Rewards'
-
+import Leaderboard from './pages/LeaderBoard'
 import { UserDataProvider } from './context/userDataContext'
 import { Invite } from './pages/Invitation'
 
@@ -40,6 +40,8 @@ const shouldHideNavbar =
         <Route path="/dustbin-map" element={<DustbinMap />} />
         <Route path="/daily-quest" element={<DailyQuest />} />
         <Route path="/rewards" element={<Rewards />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
+
         <Route path="/invitation-form" element ={<Invite />}></Route>
       </Routes>
       </UserDataProvider>
