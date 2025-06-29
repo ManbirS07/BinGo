@@ -14,6 +14,7 @@ import DailyQuest from './pages/DailyQuest'
 import Rewards from './pages/Rewards'
 
 import { UserDataProvider } from './context/userDataContext'
+import { Invite } from './pages/Invitation'
 
 const App = () => {
 const location = useLocation()
@@ -36,9 +37,10 @@ const shouldHideNavbar =
         <Route path="/dashboard" element={<Dashboard/>} />
         <Route path='/suggest-bin' element={<SuggestBin/>} />
         <Route path="/map" element={<DustbinMap />} />
-          <Route path="/dustbin-map" element={<DustbinMap />} />
-          <Route path="/daily-quest" element={<DailyQuest />} />
-          <Route path="/rewards" element={<Rewards />} />
+        <Route path="/dustbin-map" element={<DustbinMap />} />
+        <Route path="/daily-quest" element={<DailyQuest />} />
+        <Route path="/rewards" element={<Rewards />} />
+        <Route path="/invitation-form" element ={<Invite />}></Route>
       </Routes>
       </UserDataProvider>
       <SuggestBinButton/>
