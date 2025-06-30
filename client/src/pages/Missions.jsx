@@ -222,6 +222,23 @@ refreshUserData();
       const cloudinaryData = await cloudinaryResponse.json()
       const uploadedUrl = cloudinaryData.secure_url
 
+
+
+
+ setUploadStatus('Checking for dustbin/trash object...')
+    const dustbinRes = await fetch(`${BACKEND_URL}/detect_dustbin`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image_url: uploadedUrl })
+    })
+    const dustbinData = await dustbinRes.json()
+    if (!dustbinData.dustbin_detected) {
+      setError("🗑️ No dustbin or accepted object detected!\n\nPlease ensure a dustbin, bucket, bottle, cup, or similar object is clearly visible in your photo.")
+      setUploadStatus('')
+      setLoading(false)
+      return
+    }
+
       // Step 1: AI Detection
       setUploadStatus('Running AI detection...')
       setStepStatus(s => ({ ...s, ai: 'loading' }))
