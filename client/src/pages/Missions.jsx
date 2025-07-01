@@ -1,84 +1,57 @@
 import React, { useEffect, useState, useRef } from 'react'
-import { GiftIcon, TrophyIcon, CameraIcon, MapPinIcon, ScanIcon, CheckCircle2Icon, Loader2Icon, InfoIcon, SparklesIcon, StarIcon } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { GiftIcon, TrophyIcon, CameraIcon, MapPinIcon, ScanIcon, CheckCircle2Icon, Loader2Icon, InfoIcon, SparklesIcon, StarIcon, AlertTriangleIcon, XCircleIcon, CheckIcon, UploadIcon, RefreshCwIcon } from 'lucide-react'
 import clsx from 'clsx'
 import Webcam from 'react-webcam'
+import { useUser } from '@clerk/clerk-react'
+import { verifyFace } from '../utils/verifyFace'
+import { useUserData } from '../context/userDataContext'
+import { completeMission } from '../services/MissionsService'
 
 const CLOUDINARY_UPLOAD_PRESET = 'BinGo_CodePaglus'
 const CLOUDINARY_CLOUD_NAME = 'dgclo6bft'
+const BACKEND_URL = 'http://127.0.0.1:5000'
 
 const missionIcons = {
-  "Dispose Waste": <CameraIcon className="w-6 h-6 text-pink-400" />,
+  "Dispose Waste": <CameraIcon className="w-6 h-6 text-emerald-400" />,
   "Suggest Bin": <MapPinIcon className="w-6 h-6 text-blue-400" />,
-  "3-Day Streak": <TrophyIcon className="w-6 h-6 text-yellow-300" />,
-  "Sort Waste": <ScanIcon className="w-6 h-6 text-green-300" />,
+  "3-Day Streak": <TrophyIcon className="w-6 h-6 text-amber-400" />,
+  "Sort Waste": <ScanIcon className="w-6 h-6 text-purple-400" />,
 }
 
 const statusColors = {
-  not_joined: 'bg-gray-500 text-gray-100',
-  joined: 'bg-yellow-500 text-yellow-100',
-  completed: 'bg-green-600 text-green-100'
+  not_started: 'bg-gradient-to-r from-slate-600 to-slate-700 text-slate-100',
+  completed: 'bg-gradient-to-r from-emerald-600 to-green-700 text-emerald-100'
 }
 
 const funFacts = [
-  "Recycling one aluminum can saves enough energy to run a TV for 3 hours.",
-  "Plastic can take up to 1,000 years to decompose in landfills.",
-  "Composting food waste reduces methane emissions from landfills.",
-  "Suggesting new bin locations helps keep your city cleaner!",
-  "Every small action counts towards a greener planet."
+  "🔄 Recycling one aluminum can saves enough energy to run a TV for 3 hours.",
+  "⏰ Plastic can take up to 1,000 years to decompose in landfills.",
+  "🌱 Composting food waste reduces methane emissions from landfills.",
+  "📍 Suggesting new bin locations helps keep your city cleaner!",
+  "🌍 Every small action counts towards a greener planet.",
+  "🤖 AI detection helps prevent fake submissions and ensures authentic BinGo-actions.",
+  "🔍 Our duplicate detection system ensures fair play for all users."
 ]
 
-const MOCK_MISSIONS = [
-  {
-    id: 1,
-    title: "Dispose Waste",
-    description: "Dispose of at least 3 pieces of litter in a public bin and upload a photo as proof.",
-    tags: ["Waste", "Action", "Photo"],
-    reward: 25,
-    category: "Waste Disposal"
-  },
-  {
-    id: 2,
-    title: "Suggest Bin",
-    description: "Suggest a new location for a public waste bin in your area.",
-    tags: ["Community", "Suggestion"],
-    reward: 15,
-    category: "Suggest Bin"
-  },
-  {
-    id: 3,
-    title: "3-Day Streak",
-    description: "Dispose waste for 3 consecutive days to earn a streak badge.",
-    tags: ["Streak", "Habit", "Badge"],
-    reward: 50,
-    category: "Streaks"
-  },
-  {
-    id: 4,
-    title: "Sort Waste",
-    description: "Sort your household waste into recyclables and non-recyclables and upload a photo.",
-    tags: ["Sorting", "Recycling", "Photo"],
-    reward: 20,
-    category: "Sorting"
-  }
-]
-
-const todayStr = () => new Date().toISOString().slice(0, 10)
 
 const Missions = () => {
-  const user = { id: 'mock-user', name: 'Eco Hero' }
+  const { user: clerkUser } = useUser()
+  const profileImage = clerkUser?.unsafeMetadata?.profileImage
+  const userId = clerkUser?.id || 'mock-user'
+  const navigate = useNavigate()
+  const { userData, refreshUserData } = useUserData();
 
-  const [userMissions, setUserMissions] = useState(() =>
-    MOCK_MISSIONS.map(m => ({
-      missionId: m.id,
-      completed: false,
-      joined: false,
-      proofUrl: '',
-      completedAt: null
-    }))
-  )
-  const [missions] = useState(MOCK_MISSIONS)
+
+  const missions = userData?.missions || []
+  const userMissions = userData?.userMissions || [];
+  
+  const userProfile = userData?.user || {}
+  console.log(userMissions)
+
   const [selectedMission, setSelectedMission] = useState(null)
   const [showModal, setShowModal] = useState(false)
+  const [modalType, setModalType] = useState('upload')
   const [loading, setLoading] = useState(false)
   const [factIdx, setFactIdx] = useState(0)
   const [proofImage, setProofImage] = useState(null)
@@ -87,441 +60,865 @@ const Missions = () => {
   const [motivation, setMotivation] = useState('')
   const [showConfetti, setShowConfetti] = useState(false)
   const [confirmSubmit, setConfirmSubmit] = useState(false)
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef(null)
+  const [uploadStatus, setUploadStatus] = useState('')
+  const [error, setError] = useState('')
+  const [duplicateDetails, setDuplicateDetails] = useState(null)
+  const [timer, setTimer] = useState(Date.now())
+  const [aiDetectionResult, setAiDetectionResult] = useState(null)
+  const [faceVerificationResult, setFaceVerificationResult] = useState(null)
+  const [backendHealth, setBackendHealth] = useState('unknown')
+  const [stepStatus, setStepStatus] = useState({
+    ai: null,
+    duplicate: null,
+    face: null
+  })
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setFactIdx(idx => (idx + 1) % funFacts.length)
-    }, 6000)
-    return () => clearInterval(interval)
+  const interval = setInterval(() => setTimer(Date.now()), 1000)
+  return () => clearInterval(interval)
+}, [])
+
+useEffect(() => {
+  const interval = setInterval(() => {
+    setFactIdx(idx => (idx + 1) % funFacts.length)
+  }, 6000) // Change fact every 6 seconds
+  return () => clearInterval(interval)
+}, [funFacts.length])
+
+  useEffect(() => {
+    checkBackendHealth()
   }, [])
 
-  const getStatus = (missionId) => {
-    const um = userMissions.find(m => m.missionId === missionId)
-    if (!um) return 'not_joined'
-    if (um.completed) return 'completed'
-    if (um.joined) return 'joined'
-    return 'not_joined'
+  const checkBackendHealth = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/health`)
+      if (response.ok) {
+        setBackendHealth('healthy')
+      } else {
+        setBackendHealth('unhealthy')
+      }
+    } catch {
+      setBackendHealth('unhealthy')
+    }
   }
+
+const getStatus = (missionId) => {
+  // Always use cooldown logic
+  const last = getLastCompletionTime(missionId)
+  if (!last) return 'not_started'
+  if ((Date.now() - last.getTime()) < 60 * 60 * 1000) return 'cooldown'
+  return 'ready'
+}
+
+// Get total points earned for a mission
+const getMissionPoints = (missionId) => {
+  const um = userMissions.find(m => m.missionId === missionId)
+  if (!um || !um.completions) return 0
+  return um.completions.reduce((sum, c) => sum + (c.pointsEarned || 0), 0)
+}
+  
+// Helper: Get last completion time for a mission
+const getLastCompletionTime = (missionId) => {
+  const um = userMissions.find(m => m.missionId === missionId)
+  if (!um || !um.completions || um.completions.length === 0) return null
+  // Assume completions is sorted, get the last one
+  return new Date(um.completions[um.completions.length - 1].completedAt)
+}
+
+// Helper: Time left in ms
+const timeLeftMs = (missionId) => {
+  const last = getLastCompletionTime(missionId)
+  if (!last) return 0
+  const diff = 60 * 60 * 1000 - (Date.now() - last.getTime())
+  return diff > 0 ? diff : 0
+}
+
+// Helper: Format ms to mm:ss
+const formatMs = (ms) => {
+  const min = Math.floor(ms / 60000)
+  const sec = Math.floor((ms % 60000) / 1000)
+  return `${min}:${sec.toString().padStart(2, '0')}`
+}
 
   const completedCount = userMissions.filter(m => m.completed).length
   const totalCount = missions.length
   const progress = totalCount ? Math.round((completedCount / totalCount) * 100) : 0
 
-  const handleJoinMission = (mission) => {
-    setUserMissions(prev =>
-      prev.map(m =>
-        m.missionId === mission.id
-          ? { ...m, joined: true }
-          : m
-      )
-    )
-    setMotivation("Mission joined! Upload your proof to complete it.")
-  }
-
-  const handleProofUpload = (mission) => {
+  const handleMissionAction = (mission, action) => {
+    if (mission.title === "Suggest Bin") {
+      navigate('/map')
+      return
+    }
     setSelectedMission(mission)
+    setModalType(action)
     setShowModal(true)
     setProofImage(null)
     setUseCamera(false)
     setMotivation('')
     setConfirmSubmit(false)
+    setUploadStatus('')
+    setError('')
+    setDuplicateDetails(null)
+    setAiDetectionResult(null)
+    setFaceVerificationResult(null)
+    setStepStatus({ ai: null, duplicate: null, face: null })
   }
+
+  const handleStreakComplete = () => {
+    setLoading(true)
+    setUploadStatus('Updating streak progress...')
+    setTimeout(async () => {
+    await handleMissionComplete(selectedMission.id, 'streak');
+    setShowModal(false);
+    setShowConfetti(true);
+    setMotivation(`🔥 Amazing! 3-day streak completed! You've earned ${selectedMission.reward} points and built a great habit! 🏆`);
+    setTimeout(() => setShowConfetti(false), 3000);
+    setLoading(false);
+    setUploadStatus('');
+  }, 1500);
+  }
+
+  
+const handleMissionComplete = async (missionId, proofUrl) => {
+await completeMission(missionId, userId, proofUrl);
+refreshUserData(); 
+};
 
   const handleProofSubmit = async () => {
     setConfirmSubmit(false)
     if (!proofImage) return
+
     setLoading(true)
+    setUploadStatus('Uploading image to cloud storage...')
+    setError('')
+    setDuplicateDetails(null)
+    setAiDetectionResult(null)
+    setFaceVerificationResult(null)
+    setStepStatus({ ai: null, duplicate: null, face: null })
+
     try {
+      if (backendHealth === 'unhealthy') {
+        await checkBackendHealth()
+        if (backendHealth === 'unhealthy') {
+          throw new Error('Backend service is currently unavailable. Please try again later.')
+        }
+      }
+
+      // 1. Upload to Cloudinary
       const formData = new FormData()
       formData.append('file', proofImage)
       formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET)
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+
+      const cloudinaryResponse = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
         method: 'POST',
         body: formData
       })
-      const data = await res.json()
-      const uploadedUrl = data.secure_url
-      setUserMissions(prev =>
-        prev.map(m =>
-          m.missionId === selectedMission.id
-            ? {
-                ...m,
-                completed: true,
-                joined: true,
-                proofUrl: uploadedUrl,
-                completedAt: todayStr()
-              }
-            : m
-        )
-      )
-      setShowModal(false)
-      setShowConfetti(true)
-      setMotivation("Great job! You've completed a mission and made your city cleaner! 🌱")
-      setTimeout(() => setShowConfetti(false), 2500)
+
+      if (!cloudinaryResponse.ok) {
+        throw new Error('Failed to upload image to cloud storage. Please try again.')
+      }
+
+      const cloudinaryData = await cloudinaryResponse.json()
+      const uploadedUrl = cloudinaryData.secure_url
+
+
+
+
+ setUploadStatus('Checking for dustbin/trash object...')
+    const dustbinRes = await fetch(`${BACKEND_URL}/detect_dustbin`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image_url: uploadedUrl })
+    })
+    const dustbinData = await dustbinRes.json()
+    if (!dustbinData.dustbin_detected) {
+      setError("🗑️ No dustbin or accepted object detected!\n\nPlease ensure a dustbin, bucket, bottle, cup, or similar object is clearly visible in your photo.")
+      setUploadStatus('')
+      setLoading(false)
+      return
+    }
+
+      // Step 1: AI Detection
+      setUploadStatus('Running AI detection...')
+      setStepStatus(s => ({ ...s, ai: 'loading' }))
+      const aiRes = await fetch(`${BACKEND_URL}/analyze_ai_only`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image_url: uploadedUrl })
+      })
+      const aiData = await aiRes.json()
+      setAiDetectionResult({
+        isAiGenerated: aiData.ai_generated,
+        confidence: aiData.confidence,
+        details: aiData.details
+      })
+      if (aiData.ai_generated && aiData.confidence > 0.7) {
+        setStepStatus(s => ({ ...s, ai: 'fail' }))
+        setError(`❌ AI-Generated Image Detected!\n\nThis image appears to be artificially generated with ${(aiData.confidence * 100).toFixed(1)}% confidence.\n\nFor fair play, please upload authentic photos of your actual BinGo-actions.`)
+        setUploadStatus('')
+        setLoading(false)
+        return
+      } else {
+        setStepStatus(s => ({ ...s, ai: 'pass' }))
+        setUploadStatus('AI detection passed. Checking for duplicates...')
+      }
+
+      // Step 2: Duplicate Detection
+      setStepStatus(s => ({ ...s, duplicate: 'loading' }))
+      const dupRes = await fetch(`${BACKEND_URL}/check_duplicate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image_url: uploadedUrl, user_id: userId, mission_id: selectedMission?.id })
+      })
+      const dupData = await dupRes.json()
+      if (dupData.status === "rejected" || dupData.duplicate) {
+        setStepStatus(s => ({ ...s, duplicate: 'fail' }))
+        const matchDate = dupData.matched_date ? new Date(dupData.matched_date).toLocaleDateString() : 'Unknown'
+        const detectionMethod = dupData.method ? dupData.method.toUpperCase() : 'UNKNOWN'
+        setDuplicateDetails({
+          matchedImage: dupData.matched_image,
+          matchedDate: matchDate,
+          method: detectionMethod,
+          similarity: dupData.similarity
+        })
+        setError(`🔍 Duplicate Image Detected!\n\nThis image matches one you uploaded on ${matchDate}.\nDetection method: ${detectionMethod}${dupData.similarity ? `\nSimilarity: ${(dupData.similarity * 100).toFixed(1)}%` : ''}\n\nPlease upload a new, unique photo for this mission.`)
+        setUploadStatus('')
+        setLoading(false)
+        return
+      } else {
+        setStepStatus(s => ({ ...s, duplicate: 'pass' }))
+        setUploadStatus('Duplicate check passed. Running face verification...')
+      }
+
+      // Step 3: Face Verification (if profile image available)
+      if (profileImage) {
+        setStepStatus(s => ({ ...s, face: 'loading' }))
+        setUploadStatus('Running face verification...')
+        const faceResult = await verifyFace(profileImage, proofImage)
+        setFaceVerificationResult(faceResult)
+        if (faceResult.error) {
+          setStepStatus(s => ({ ...s, face: 'fail' }))
+          setError(`❌ Face Verification Error: ${faceResult.error}`)
+          setUploadStatus('')
+          setLoading(false)
+          return
+        }
+        if (faceResult.verified === false) {
+          setStepStatus(s => ({ ...s, face: 'fail' }))
+          setError(`❌ Face Verification Failed!\n\nThe face in your proof image does not match your profile image.`)
+          setUploadStatus('')
+          setLoading(false)
+          return
+        }
+        if (faceResult.verified === undefined) {
+          setStepStatus(s => ({ ...s, face: 'fail' }))
+          setError(`❌ No face detected in one or both images. Please ensure your face is clearly visible.`)
+          setUploadStatus('')
+          setLoading(false)
+          return
+        }
+        setStepStatus(s => ({ ...s, face: 'pass' }))
+        setUploadStatus('Face verification successful!')
+      } else {
+        setStepStatus(s => ({ ...s, face: 'skip' }))
+      }
+      setUploadStatus('All checks passed! Completing mission...')
+      setTimeout(async () => {
+
+      await handleMissionComplete(selectedMission.id, uploadedUrl);
+      setShowModal(false);
+      setShowConfetti(true);
+      setMotivation(`🎉 Mission completed successfully! You've earned ${selectedMission.reward} points and made your city cleaner! 🌱`);
+      setTimeout(() => setShowConfetti(false), 3000);
+      }, 1200);
     } catch (err) {
-      alert("Upload failed. Try again.")
-      console.error(err)
+      setError(`❌ Upload Failed\n\n${err.message}\n\nPlease check your internet connection and try again.`)
     }
     setLoading(false)
+    setUploadStatus('')
   }
 
+  const resetModal = () => {
+    setProofImage(null)
+    setConfirmSubmit(false)
+    setError('')
+    setUploadStatus('')
+    setDuplicateDetails(null)
+    setAiDetectionResult(null)
+    setFaceVerificationResult(null)
+    setStepStatus({ ai: null, duplicate: null, face: null })
+  }
+
+
+  const totalPoints = userProfile.totalPoints || 0
+  
   const streakDays = userMissions.find(m => m.missionId === 3 && m.completed)
     ? 3
-    : userMissions.find(m => m.missionId === 3 && m.joined)
+    : userMissions.find(m => m.missionId === 3)
     ? 2
     : 1
 
+  const renderStepStatus = (label, status) => (
+    <div className="flex items-center gap-2 text-sm mb-1">
+      {status === 'loading' && <Loader2Icon className="w-4 h-4 animate-spin text-blue-600" />}
+      {status === 'pass' && <CheckCircle2Icon className="w-4 h-4 text-green-500" />}
+      {status === 'fail' && <XCircleIcon className="w-4 h-4 text-red-500" />}
+      {status === 'skip' && <InfoIcon className="w-4 h-4 text-gray-400" />}
+      <span className={
+        status === 'pass' ? 'text-green-700' :
+        status === 'fail' ? 'text-red-700' :
+        status === 'loading' ? 'text-blue-700' :
+        'text-gray-700'
+      }>
+        {label}
+        {status === 'skip' && ' (skipped)'}
+      </span>
+    </div>
+  )
+
+  const getMissionButtons = (mission) => {
+  const status = getStatus(mission.id)
+  const msLeft = timeLeftMs(mission.id)
+
+ if (status === 'cooldown') {
+    return (
+      <button
+        disabled
+        className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold shadow-lg bg-gray-700 text-gray-300 cursor-not-allowed"
+      >
+        <RefreshCwIcon className="w-5 h-5 animate-spin" />
+        Available in {formatMs(msLeft)}
+      </button>
+    )
+  }
+  
+
+    if (mission.title === "Suggest Bin") {
+      return (
+        <button
+          onClick={() => navigate('/map')}
+          className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold shadow-lg transition-all duration-300 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white transform hover:scale-105 hover:shadow-xl"
+        >
+          <MapPinIcon className="w-5 h-5" />
+          Suggest Location
+        </button>
+      )
+    }
+
+    if (mission.title === "3-Day Streak") {
+      return (
+        <button
+          onClick={() => handleMissionAction(mission, 'streak')}
+          className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold shadow-lg transition-all duration-300 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white transform hover:scale-105 hover:shadow-xl"
+        >
+          <TrophyIcon className="w-5 h-5" />
+          Complete Streak
+        </button>
+      )
+    }
+
+    return (
+      <button
+        onClick={() => handleMissionAction(mission, 'upload')}
+        className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold shadow-lg transition-all duration-300 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white transform hover:scale-105 hover:shadow-xl"
+      >
+        <CameraIcon className="w-5 h-5" />
+        Upload Photo
+      </button>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-950 via-black to-emerald-900 pt-32 pb-16 px-6 md:px-16">
-      <div className="max-w-5xl mx-auto">
-        {/* Welcome and fun fact */}
-        <div className="mb-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div>
-            <h1 className="text-4xl font-extrabold text-green-200 mb-2 drop-shadow-lg flex items-center gap-2">
-              <TrophyIcon className="w-8 h-8 text-yellow-300" /> Missions
-            </h1>
-            <p className="text-lg text-gray-200 mb-2">
-              Complete eco-missions, earn points, and climb the leaderboard!
-            </p>
-            <div className="flex items-center gap-2 bg-green-900/40 px-4 py-2 rounded-lg shadow mt-2">
-              <InfoIcon className="w-5 h-5 text-green-300 animate-pulse" />
-              <span className="text-green-100 font-medium">{funFacts[factIdx]}</span>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-emerald-900 pt-32 pb-16 px-6 md:px-16">
+      <div className="max-w-6xl mx-auto">
+        {/* Backend Status Indicator */}
+        <div className="fixed top-20 right-4 z-40">
+          <div className={clsx(
+            "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold backdrop-blur-sm",
+            backendHealth === 'healthy' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+            backendHealth === 'unhealthy' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
+            'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+          )}>
+            <div className={clsx(
+              "w-2 h-2 rounded-full animate-pulse",
+              backendHealth === 'healthy' ? 'bg-emerald-400' :
+              backendHealth === 'unhealthy' ? 'bg-red-400' :
+              'bg-amber-400'
+            )} />
+            AI Detection: {backendHealth === 'healthy' ? 'Online' : backendHealth === 'unhealthy' ? 'Offline' : 'Checking...'}
           </div>
-          <div className="flex flex-col gap-2 items-end">
-            <div className="flex items-center gap-2">
-              <GiftIcon className="w-6 h-6 text-yellow-300" />
-              <span className="font-semibold text-green-100">Total Rewards: </span>
-              <span className="text-yellow-200 font-bold">{userMissions.filter(m => m.completed).reduce((sum, m) => sum + (missions.find(ms => ms.id === m.missionId)?.reward || 0), 0)}</span>
-            </div>
-            <div className="w-48 bg-white/10 rounded-full h-4 mt-2 relative">
-              <div
-                className="bg-gradient-to-r from-green-400 to-emerald-500 h-4 rounded-full transition-all duration-700"
-                style={{ width: `${progress}%` }}
+        </div>
+
+        {/* Profile Section */}
+        <div className="flex flex-col items-center mb-12">
+          <div className="relative mb-6">
+            <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-emerald-400 shadow-2xl bg-white flex items-center justify-center ring-4 ring-emerald-400/20">
+              <img
+                src={profileImage || '/default-avatar.png'}
+                alt="Profile"
+                className="w-full h-full object-cover"
               />
-              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-xs text-white font-bold">{progress}% Complete</span>
+            </div>
+            <div className="absolute -bottom-2 -right-2 bg-emerald-500 rounded-full p-2 shadow-lg">
+              <SparklesIcon className="w-5 h-5 text-white" />
+            </div>
+          </div>
+
+          {/* Header */}
+          <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 mb-4 text-center">
+            BinGo Missions
+          </h1>
+          <p className="text-xl text-gray-300 mb-6 text-center max-w-2xl">
+            Complete BinGo missions, earn rewards, and make a positive impact on the environment!
+          </p>
+
+          {/* Fun Fact Ticker */}
+          <div className="bg-gradient-to-r from-emerald-900/40 to-green-900/40 backdrop-blur-sm border border-emerald-500/20 rounded-2xl px-6 py-4 shadow-xl max-w-4xl">
+            <div className="flex items-center gap-3">
+              <InfoIcon className="w-6 h-6 text-emerald-400 animate-pulse flex-shrink-0" />
+              <span className="text-emerald-100 font-medium text-lg">{funFacts[factIdx]}</span>
             </div>
           </div>
         </div>
 
-        {/* Mission categories */}
-        <div className="mb-8 flex flex-wrap gap-4">
-          <span className="bg-green-700/60 text-green-100 px-4 py-2 rounded-full font-semibold flex items-center gap-2">
-            <CameraIcon className="w-5 h-5" /> Waste Disposal
-          </span>
-          <span className="bg-blue-700/60 text-blue-100 px-4 py-2 rounded-full font-semibold flex items-center gap-2">
-            <MapPinIcon className="w-5 h-5" /> Suggest Bin
-          </span>
-          <span className="bg-yellow-700/60 text-yellow-100 px-4 py-2 rounded-full font-semibold flex items-center gap-2">
-            <TrophyIcon className="w-5 h-5" /> Streaks
-          </span>
-          <span className="bg-emerald-700/60 text-emerald-100 px-4 py-2 rounded-full font-semibold flex items-center gap-2">
-            <ScanIcon className="w-5 h-5" /> Sorting
-          </span>
+        {/* Progress Section */}
+        <div className="bg-gradient-to-r from-slate-800/50 to-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-3xl p-8 mb-12 shadow-2xl">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="bg-gradient-to-r from-emerald-500 to-green-500 rounded-full p-3">
+                <TrophyIcon className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-white mb-1">Mission Progress</h3>
+                <p className="text-gray-400">Keep up the great work!</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-6">
+              <div className="text-center">
+                <div className="text-3xl font-black text-emerald-400">{completedCount}</div>
+                <div className="text-sm text-gray-400">Completed</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-black text-amber-400">
+                  {totalPoints}
+                   </div>
+                <div className="text-sm text-gray-400">Points Earned</div>
+              </div>
+              <div className="w-32">
+                <div className="bg-gray-700 rounded-full h-3 overflow-hidden">
+                  <div
+                    className="bg-gradient-to-r from-emerald-400 to-green-500 h-full transition-all duration-1000 ease-out"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <div className="text-sm text-gray-400 mt-1 text-center">{progress}% Complete</div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Motivation message */}
+        {/* Motivation Message */}
         {motivation && (
-          <div className="mb-6 flex items-center gap-2 bg-emerald-900/60 px-4 py-3 rounded-lg shadow text-green-200 font-semibold animate-fade-in-up">
-            <SparklesIcon className="w-6 h-6 text-yellow-300" />
-            {motivation}
+          <div className="mb-8 bg-gradient-to-r from-emerald-500/20 to-green-500/20 backdrop-blur-sm border border-emerald-500/30 rounded-2xl p-6 shadow-xl animate-fade-in-up">
+            <div className="flex items-center gap-3">
+              <SparklesIcon className="w-8 h-8 text-emerald-400 animate-bounce" />
+              <span className="text-emerald-100 font-semibold text-lg">{motivation}</span>
+            </div>
           </div>
         )}
 
-        {/* Confetti for completed mission */}
+        {/* Confetti Animation */}
         {showConfetti && (
-          <div className="fixed inset-0 z-50 pointer-events-none flex justify-center items-start">
-            {[...Array(20)].map((_, i) => (
-              <StarIcon
+          <div className="fixed inset-0 z-50 pointer-events-none">
+            {[...Array(30)].map((_, i) => (
+              <div
                 key={i}
-                className="w-8 h-8 text-yellow-300 animate-confetti"
+                className="absolute animate-confetti"
                 style={{
                   left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 40 + 10}%`,
-                  position: 'absolute',
-                  animationDelay: `${Math.random()}s`
+                  top: `-10px`,
+                  animationDelay: `${Math.random() * 2}s`,
+                  animationDuration: `${3 + Math.random() * 2}s`
                 }}
-              />
+              >
+                <StarIcon className="w-6 h-6 text-amber-400" />
+              </div>
             ))}
           </div>
         )}
 
-        {/* Mission cards */}
+        {/* Mission Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {missions.map((mission, idx) => {
+          {missions.map((mission) => {
             const status = getStatus(mission.id)
-            const um = userMissions.find(m => m.missionId === mission.id)
+            const colorClass = mission.color || 'emerald'
             return (
               <div
                 key={mission.id}
                 className={clsx(
-                  "relative bg-white/10 border border-green-300/20 rounded-2xl p-7 shadow-xl flex flex-col justify-between min-h-[280px] overflow-hidden group transition-all duration-300",
-                  status === 'completed' && 'ring-2 ring-green-400/60'
+                  "relative group overflow-hidden rounded-3xl shadow-2xl transition-all duration-500 transform hover:scale-105",
+                  status === 'completed'
+                    ? 'bg-gradient-to-br from-emerald-900/60 to-green-900/60 border-2 border-emerald-400/50 ring-2 ring-emerald-400/20'
+                    : 'bg-gradient-to-br from-slate-800/60 to-gray-800/60 border border-gray-700/50 hover:border-emerald-500/30'
                 )}
               >
-                {/* Icon */}
-                <div className="absolute -top-6 -right-6 opacity-30 group-hover:opacity-60 transition">
-                  {missionIcons[mission.title] || <TrophyIcon className="w-16 h-16 text-green-400" />}
+                {/* Background Pattern */}
+                <div className="absolute inset-0 opacity-5">
+                  <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent transform rotate-45" />
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-green-200 mb-2 flex items-center gap-2">
-                    {missionIcons[mission.title] || <TrophyIcon className="w-6 h-6 text-green-400" />}
-                    {mission.title}
-                  </h2>
-                  <p className="text-gray-100 mb-4">{mission.description}</p>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {mission.tags?.map(tag => (
-                      <span key={tag} className="bg-green-700/40 text-green-200 px-2 py-1 rounded text-xs">{tag}</span>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex items-center justify-between mt-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColors[status]}`}>
-                    {status === 'not_joined' && 'Not Joined'}
-                    {status === 'joined' && 'In Progress'}
-                    {status === 'completed' && (
-                      <span className="flex items-center gap-1">
-                        Completed <CheckCircle2Icon className="w-4 h-4 text-green-300 ml-1" />
-                      </span>
-                    )}
-                  </span>
-                  <span className="text-yellow-300 font-bold text-base flex items-center gap-1">
-                    <GiftIcon className="w-5 h-5" /> {mission.reward || 0}
-                  </span>
-                </div>
-                <div className="flex justify-end mt-4">
-                  {status === 'not_joined' && (
-                    <button
-                      onClick={() => handleJoinMission(mission)}
-                      className="px-5 py-2 rounded-full font-semibold shadow-lg transition bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-300 hover:to-yellow-400 text-gray-900"
-                    >
-                      Join Mission
-                    </button>
-                  )}
-                  {status === 'joined' && (
-                    <button
-                      onClick={() => handleProofUpload(mission)}
-                      className="px-5 py-2 rounded-full font-semibold shadow-lg transition bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-300 hover:to-emerald-400 text-white"
-                    >
-                      Upload Proof
-                    </button>
-                  )}
-                  {status === 'completed' && (
-                    <button
-                      onClick={() => handleProofUpload(mission)}
-                      className="px-5 py-2 rounded-full font-semibold shadow-lg transition bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-300 hover:to-emerald-400 text-white"
-                    >
-                      Upload Again
-                    </button>
-                  )}
-                </div>
-                {/* Confetti animation for completed */}
-                {status === 'completed' && (
-                  <div className="absolute inset-0 pointer-events-none z-10">
-                    <div className="absolute left-1/2 top-2 animate-bounce">
-                      <TrophyIcon className="w-10 h-10 text-yellow-300 drop-shadow-lg" />
+
+                {/* Content */}
+                <div className="relative p-8 flex flex-col h-full min-h-[400px]">
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <div className={`bg-gradient-to-r from-${colorClass}-500 to-${colorClass}-600 rounded-2xl p-3 shadow-lg`}>
+                        {missionIcons[mission.title]}
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-white mb-1">{mission.title}</h3>
+                        <div className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColors[status]}`}>
+                          {status === 'completed' ? '✅ Completed' : '🎯 Ready to Start'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="flex items-center gap-1 text-amber-400 font-bold text-lg">
+                        <GiftIcon className="w-5 h-5" />
+                        <span>{mission.reward}</span>
+                      </div>
+                      <div className="text-xs text-gray-400 mt-1">points</div>
+                        <div className="text-xs text-emerald-300 mt-1">
+    Earned: {getMissionPoints(mission.id)}
+  </div>
                     </div>
                   </div>
-                )}
-                {/* Show proof image if completed */}
-                {status === 'completed' && um?.proofUrl && (
-                  <div className="mt-4">
-                    <span className="block text-green-200 text-xs mb-1">Your Proof:</span>
-                    <img src={um.proofUrl} alt="Proof" className="w-24 h-24 rounded-lg object-cover border-2 border-green-400 shadow" />
-                  </div>
-                )}
-                {/* Show streak progress for streak mission */}
-                {mission.title === "3-Day Streak" && (
-                  <div className="mt-4 flex items-center gap-2">
-                    <span className="text-yellow-200 font-bold">Streak:</span>
-                    {[1, 2, 3].map(day => (
-                      <span key={day} className={clsx(
-                        "w-6 h-6 rounded-full flex items-center justify-center font-bold",
-                        streakDays >= day ? "bg-yellow-400 text-yellow-900" : "bg-gray-400 text-gray-100"
-                      )}>{day}</span>
+
+                  {/* Description */}
+                  <p className="text-gray-300 text-lg leading-relaxed mb-6 flex-grow">
+                    {mission.description}
+                  </p>
+
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-2 mb-6">
+                    {mission.tags.map((tag, idx) => (
+                      <span
+                        key={idx}
+                        className="px-3 py-1 bg-gray-700/50 rounded-full text-xs font-medium text-gray-300 border border-gray-600/50"
+                      >
+                        {tag}
+                      </span>
                     ))}
                   </div>
-                )}
+
+                  {/* Action Buttons */}
+                  <div className="mt-auto">
+                    {getMissionButtons(mission)}
+                  </div>
+
+                  {/* Completion Badge */}
+                  {status === 'completed' && (
+                    <div className="absolute top-4 right-4">
+                      <div className="bg-emerald-500 rounded-full p-2 shadow-lg animate-pulse">
+                        <CheckCircle2Icon className="w-6 h-6 text-white" />
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )
           })}
         </div>
 
-        {/* Proof Upload Modal */}
-        {showModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-            <div className="bg-white rounded-xl p-8 shadow-xl w-[350px] flex flex-col items-center relative">
-              <button
-                className="absolute top-2 right-3 text-gray-500 hover:text-red-500 text-xl"
-                onClick={() => setShowModal(false)}
-              >×</button>
-              <h2 className="text-lg font-bold mb-4 text-green-700 text-center">
-                Upload Proof for "{selectedMission?.title}"
-              </h2>
-
-              <div className="flex gap-2 mb-4">
-  <button
-    onClick={() => {
-      setUseCamera(false)
-      setTimeout(() => fileInputRef.current && fileInputRef.current.click(), 0)
-    }}
-    className={`px-3 py-1 rounded-full font-semibold ${!useCamera ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-700'}`}
-    type="button"
-  >
-    Upload
-  </button>
-  <button
-    onClick={() => setUseCamera(true)}
-    className={`px-3 py-1 rounded-full font-semibold ${useCamera ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-700'}`}
-    type="button"
-  >
-    Camera
-  </button>
-</div>
-
-{!useCamera ? (
-  <>
-    <input
-      ref={fileInputRef}
-      type="file"
-      accept="image/*"
-      style={{ display: 'none' }}
-      onChange={e => {
-        setProofImage(e.target.files[0])
-        setConfirmSubmit(false)
-      }}
-    />
-    {proofImage && (
-      <div className="flex flex-col items-center mb-3">
-        <img src={URL.createObjectURL(proofImage)} alt="Preview" className="w-24 h-24 rounded-lg object-cover border-2 border-green-400 mb-2" />
-        <button
-          className="text-sm text-blue-600 underline mb-1"
-          onClick={() => {
-            setProofImage(null)
-            setConfirmSubmit(false)
-          }}
-        >
-          Upload Again
-        </button>
-      </div>
-    )}
-  </>
-) : (
-  <>
-    <Webcam
-      audio={false}
-      ref={webcamRef}
-      screenshotFormat="image/jpeg"
-      className="w-48 h-48 rounded-lg mb-3 border-2 border-green-400"
-    />
-    <button
-      onClick={() => {
-        const imageSrc = webcamRef.current.getScreenshot()
-        fetch(imageSrc)
-          .then(res => res.blob())
-          .then(blob => {
-            const file = new File([blob], "proof.jpg", { type: blob.type })
-            setProofImage(file)
-            setConfirmSubmit(false)
-          })
-      }}
-      className="bg-emerald-500 text-white px-4 py-1 rounded-full font-semibold hover:bg-emerald-600 mb-2"
-    >
-      Capture
-    </button>
-    {proofImage && (
-      <div className="flex flex-col items-center mb-3">
-        <img src={URL.createObjectURL(proofImage)} alt="Preview" className="w-24 h-24 rounded-lg object-cover border-2 border-green-400 mb-2" />
-        <button
-          className="text-sm text-blue-600 underline mb-1"
-          onClick={() => {
-            setProofImage(null)
-            setConfirmSubmit(false)
-          }}
-        >
-          Capture Again
-        </button>
-      </div>
-    )}
-  </>
-)}
-
-              {/* Confirm before final submit */}
-              {proofImage && !confirmSubmit && (
+        {/* Modal */}
+        {showModal && selectedMission && modalType !== 'suggest' && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+            <div className="bg-gradient-to-br from-slate-800 to-gray-900 rounded-3xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto border border-gray-700 shadow-2xl">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-3xl font-bold text-white flex items-center gap-3">
+                  {missionIcons[selectedMission?.title]}
+                  {selectedMission?.title}
+                </h2>
                 <button
-                  onClick={() => setConfirmSubmit(true)}
-                  className="bg-yellow-500 text-white px-6 py-2 rounded-full font-semibold hover:bg-yellow-600 transition mt-2"
+                  onClick={() => setShowModal(false)}
+                  className="text-gray-400 hover:text-white transition-colors p-2"
                 >
-                  Continue
+                  <XCircleIcon className="w-6 h-6" />
                 </button>
+              </div>
+
+              {/* Modal Content */}
+              {modalType === 'view' && (
+                <div className="space-y-6">
+                  <p className="text-gray-300 text-lg">{selectedMission?.description}</p>
+                  {userMissions.find(m => m.missionId === selectedMission?.id)?.proofUrl &&
+                   userMissions.find(m => m.missionId === selectedMission?.id)?.proofUrl !== 'streak' && (
+                    <div className="bg-gray-800/50 rounded-2xl p-6">
+                      <h3 className="text-xl font-semibold text-white mb-4">Proof Image</h3>
+                      <img
+                        src={userMissions.find(m => m.missionId === selectedMission?.id)?.proofUrl}
+                        alt="Mission proof"
+                        className="w-full max-w-md mx-auto rounded-xl shadow-lg"
+                      />
+                    </div>
+                  )}
+                  {userMissions.find(m => m.missionId === selectedMission?.id)?.proofUrl === 'streak' && (
+                    <div className="bg-amber-900/30 rounded-2xl p-6 border border-amber-500/30">
+                      <h3 className="text-xl font-semibold text-amber-300 mb-2">3-Day Streak Completed! 🔥</h3>
+                      <p className="text-amber-200">Congratulations on building a sustainable habit!</p>
+                    </div>
+                  )}
+                </div>
               )}
 
-              {confirmSubmit && (
-                <div className="flex flex-col items-center mt-2">
-                  <div className="mb-3 text-green-700 font-semibold text-center">
-                    Are you sure you want to submit this image as proof?
+              {modalType === 'streak' && (
+                <div className="space-y-6">
+                  <p className="text-gray-300 text-lg">{selectedMission?.description}</p>
+                  <div className="bg-amber-900/30 rounded-2xl p-6 border border-amber-500/30">
+                    <h3 className="text-xl font-semibold text-amber-300 mb-4">Streak Progress</h3>
+                    <div className="flex items-center gap-4">
+                      {[1, 2, 3].map(day => (
+                        <div key={day} className="flex flex-col items-center">
+                          <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 ${
+                            day <= streakDays
+                              ? 'bg-amber-500 border-amber-400 text-white'
+                              : 'bg-gray-700 border-gray-600 text-gray-400'
+                          }`}>
+                            {day <= streakDays ? <CheckIcon className="w-6 h-6" /> : day}
+                          </div>
+                          <span className="text-sm text-amber-300 mt-2">Day {day}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-amber-200 mt-4">
+                      {streakDays === 3 ? 'Congratulations! You can now complete this mission!' :
+                       `Keep going! You've completed ${streakDays} out of 3 days.`}
+                    </p>
                   </div>
                   <div className="flex gap-3">
                     <button
-                      onClick={handleProofSubmit}
-                      disabled={loading}
-                      className="bg-green-500 text-white px-6 py-2 rounded-full font-semibold hover:bg-green-600 transition"
+                      onClick={handleStreakComplete}
+                      disabled={loading || streakDays < 3}
+                      className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-semibold rounded-xl transition-all duration-300 disabled:cursor-not-allowed"
                     >
-                      {loading ? <Loader2Icon className="w-5 h-5 animate-spin" /> : "Yes, Submit"}
+                      {loading ? (
+                        <>
+                          <Loader2Icon className="w-5 h-5 animate-spin" />
+                          Completing...
+                        </>
+                      ) : (
+                        <>
+                          <TrophyIcon className="w-5 h-5" />
+                          Complete Mission
+                        </>
+                      )}
                     </button>
                     <button
-                      onClick={() => setConfirmSubmit(false)}
-                      className="bg-gray-400 text-white px-6 py-2 rounded-full font-semibold hover:bg-gray-500 transition"
+                      onClick={() => setShowModal(false)}
+                      className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-xl transition-all duration-300"
                     >
                       Cancel
                     </button>
                   </div>
                 </div>
               )}
+
+              {modalType === 'upload' && (
+                <div className="space-y-6">
+                  <p className="text-gray-300 text-lg">{selectedMission?.description}</p>
+                  {(stepStatus.ai || stepStatus.duplicate || stepStatus.face) && (
+                    <div className="bg-gray-800/50 rounded-2xl p-4 border border-gray-700">
+                      <h3 className="text-lg font-semibold text-white mb-3">Verification Steps</h3>
+                      {renderStepStatus('AI Detection', stepStatus.ai)}
+                      {renderStepStatus('Duplicate Check', stepStatus.duplicate)}
+                      {profileImage && renderStepStatus('Face Verification', stepStatus.face)}
+                    </div>
+                  )}
+                  {!proofImage && (
+                    <div className="space-y-4">
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => setUseCamera(true)}
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-xl transition-all duration-300"
+                        >
+                          <CameraIcon className="w-5 h-5" />
+                          Use Camera
+                        </button>
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all duration-300"
+                        >
+                          <UploadIcon className="w-5 h-5" />
+                          Upload File
+                        </button>
+                      </div>
+                      {useCamera && (
+                        <div className="bg-gray-800 rounded-2xl p-4">
+                          <Webcam
+                            ref={webcamRef}
+                            screenshotFormat="image/jpeg"
+                            className="w-full rounded-xl"
+                          />
+                          <div className="flex gap-3 mt-4">
+                            <button
+                              onClick={() => {
+                                const imageSrc = webcamRef.current?.getScreenshot()
+                                if (imageSrc) {
+                                  fetch(imageSrc)
+                                    .then(res => res.blob())
+                                    .then(blob => {
+                                      const file = new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' })
+                                      setProofImage(file)
+                                      setUseCamera(false)
+                                    })
+                                }
+                              }}
+                              className="flex-1 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all duration-300"
+                            >
+                              Capture Photo
+                            </button>
+                            <button
+                              onClick={() => setUseCamera(false)}
+                              className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white font-semibold rounded-xl transition-all duration-300"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            setProofImage(file)
+                          }
+                        }}
+                        className="hidden"
+                      />
+                    </div>
+                  )}
+                  {proofImage && (
+                    <div className="bg-gray-800/50 rounded-2xl p-4">
+                      <h3 className="text-lg font-semibold text-white mb-3">Image Preview</h3>
+                      <img
+                        src={URL.createObjectURL(proofImage)}
+                        alt="Proof preview"
+                        className="w-40 max-w-md mx-auto rounded-xl shadow-lg"
+                      />
+                      <div className="flex gap-3 mt-4">
+                        {!confirmSubmit ? (
+                          <>
+                            <button
+                              onClick={() => setConfirmSubmit(true)}
+                              className="flex-1 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all duration-300"
+                            >
+                              Confirm & Submit
+                            </button>
+                            <button
+                              onClick={resetModal}
+                              className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white font-semibold rounded-xl transition-all duration-300"
+                            >
+                              Change Photo
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              onClick={handleProofSubmit}
+                              disabled={loading}
+                              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-semibold rounded-xl transition-all duration-300 disabled:cursor-not-allowed"
+                            >
+                              {loading ? (
+                                <>
+                                  <Loader2Icon className="w-5 h-5 animate-spin" />
+                                  Processing...
+                                </>
+                              ) : (
+                                <>
+                                  <CheckIcon className="w-5 h-5" />
+                                  Final Submit
+                                </>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => setConfirmSubmit(false)}
+                              disabled={loading}
+                              className="px-4 py-2 bg-gray-600 hover:bg-gray-500 disabled:bg-gray-700 text-white font-semibold rounded-xl transition-all duration-300"
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {uploadStatus && (
+                    <div className="bg-blue-900/30 border border-blue-500/30 rounded-xl p-4">
+                      <div className="flex items-center gap-2">
+                        <Loader2Icon className="w-5 h-5 animate-spin text-blue-400" />
+                        <span className="text-blue-300">{uploadStatus}</span>
+                      </div>
+                    </div>
+                  )}
+                  {error && (
+                    <div className="bg-red-900/30 border border-red-500/30 rounded-xl p-4">
+                      <div className="flex items-start gap-3">
+                        <AlertTriangleIcon className="w-6 h-6 text-red-400 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-red-300 whitespace-pre-line">{error}</p>
+                          {duplicateDetails && (
+                            <div className="mt-3 pt-3 border-t border-red-500/30">
+                             
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {!loading && (
+                    <button
+                      onClick={() => setShowModal(false)}
+                      className="w-full px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-xl transition-all duration-300"
+                    >
+                      Close
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
-
-        {/* Mission history */}
-        <div className="mt-16">
-          <h2 className="text-2xl font-bold text-green-200 mb-4 flex items-center gap-2">
-            <SparklesIcon className="w-6 h-6 text-green-300" /> Your Mission History
-          </h2>
-          <ul className="space-y-3">
-            {userMissions.filter(m => m.completed).length === 0 && (
-              <li className="text-gray-300">No missions completed yet. Start your eco journey now!</li>
-            )}
-            {userMissions.filter(m => m.completed).map(m => {
-              const mission = missions.find(ms => ms.id === m.missionId)
-              return (
-                <li key={m.missionId} className="bg-white/10 p-4 rounded-lg border border-white/10 flex items-center gap-3">
-                  <CheckCircle2Icon className="w-6 h-6 text-green-300" />
-                  <span className="font-semibold text-green-100">{mission?.title}</span>
-                  <span className="text-gray-300 text-sm ml-auto">{m.completedAt}</span>
-                </li>
-              )
-            })}
-          </ul>
-        </div>
       </div>
-      {/* Animations */}
       <style>{`
-        @keyframes bounce {
-          0%, 100% { transform: translateY(0);}
-          50% { transform: translateY(-10px);}
-        }
-        .animate-bounce { animation: bounce 1.2s infinite; }
-        @keyframes fade-in-up {
-          from { opacity: 0; transform: translateY(30px);}
-          to { opacity: 1; transform: translateY(0);}
-        }
-        .animate-fade-in-up { animation: fade-in-up 0.7s both; }
         @keyframes confetti {
-          0% { transform: translateY(-20px) scale(1);}
-          100% { transform: translateY(400px) scale(0.7);}
+          0% {
+            transform: translateY(-10px) rotate(0deg);
+          }
+          100% {
+            transform: translateY(100vh) rotate(360deg);
+          }
         }
-        .animate-confetti { animation: confetti 1.5s linear forwards; }
+        .animate-confetti {
+          animation: confetti linear forwards;
+        }
+        @keyframes fade-in-up {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fade-in-up {
+          animation: fade-in-up 0.5s ease-out;
+        }
       `}</style>
     </div>
   )

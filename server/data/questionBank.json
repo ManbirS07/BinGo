@@ -1,0 +1,1002 @@
+[
+  {
+    "question": "Which of the following is an example of electronic waste?",
+    "options": [
+      "Banana Peel",
+      "Old Mobile Phone",
+      "Plastic Bottle",
+      "Used Tissue"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "What is the color of the bin used for compostable organic waste in most Indian municipalities?",
+    "options": [
+      "Blue",
+      "Red",
+      "Green",
+      "Yellow"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "Which of the following is NOT biodegradable?",
+    "options": [
+      "Paper",
+      "Vegetable Waste",
+      "Plastic",
+      "Cotton Cloth"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "Which gas is commonly released from landfills and contributes to global warming?",
+    "options": [
+      "Oxygen",
+      "Nitrogen",
+      "Methane",
+      "Carbon Monoxide"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "What is the primary aim of waste segregation?",
+    "options": [
+      "Burning waste",
+      "Collecting more waste",
+      "Recycling and proper disposal",
+      "Making waste colorful"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "Which of these materials can be recycled?",
+    "options": [
+      "Plastic Bags",
+      "Glass Bottles",
+      "Used Tissue",
+      "Food Scraps"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "Which type of waste includes batteries and chemicals?",
+    "options": [
+      "Organic Waste",
+      "Hazardous Waste",
+      "Construction Waste",
+      "Dry Waste"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "Which Indian campaign focuses on cleanliness and sanitation?",
+    "options": [
+      "Clean India Movement",
+      "Swachh Bharat Abhiyan",
+      "Go Green India",
+      "Eco India Campaign"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "Which of the following is a benefit of composting?",
+    "options": [
+      "Reduces soil nutrients",
+      "Increases plastic waste",
+      "Produces natural fertilizer",
+      "Generates harmful gas"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "What is the best way to dispose of food waste at home?",
+    "options": [
+      "Flush it",
+      "Burn it",
+      "Compost it",
+      "Throw in plastic bin"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "What does the term 'zero waste' mean?",
+    "options": [
+      "Producing no trash at all",
+      "Using more packaging",
+      "Burying all waste",
+      "Burning all waste"
+    ],
+    "correctAnswer": 0
+  },
+  {
+    "question": "What is 'upcycling'?",
+    "options": [
+      "Using waste as is",
+      "Converting waste into higher-value products",
+      "Throwing waste in landfill",
+      "Dumping into ocean"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "What kind of waste are vegetable peels?",
+    "options": [
+      "Dry Waste",
+      "Wet Waste",
+      "Hazardous Waste",
+      "E-waste"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "Which waste is a major contributor to ocean pollution?",
+    "options": [
+      "Organic Waste",
+      "Plastic Waste",
+      "Glass",
+      "Rubber"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "Which of these is a recyclable item?",
+    "options": [
+      "Used tissue",
+      "Plastic straw",
+      "Aluminum can",
+      "Food scraps"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "How can individuals reduce plastic waste?",
+    "options": [
+      "Use single-use bags",
+      "Avoid recycling",
+      "Carry reusable bags",
+      "Burn plastics"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "What is the environmental problem with plastic?",
+    "options": [
+      "It decomposes too fast",
+      "It causes floods",
+      "It takes hundreds of years to decompose",
+      "It grows bacteria"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "What is the process of breaking down organic material by microbes called?",
+    "options": [
+      "Incineration",
+      "Segregation",
+      "Composting",
+      "Dehydration"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "Which of these is considered e-waste?",
+    "options": [
+      "Banana peel",
+      "Plastic bag",
+      "Old laptop",
+      "Glass bottle"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "Biomedical waste should be disposed of in which bin?",
+    "options": [
+      "Green",
+      "Yellow",
+      "Blue",
+      "Black"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "What does the term 'zero waste' mean?",
+    "options": [
+      "Producing no trash at all",
+      "Using more packaging",
+      "Burying all waste",
+      "Burning all waste"
+    ],
+    "correctAnswer": 0
+  },
+  {
+    "question": "What is 'upcycling'?",
+    "options": [
+      "Using waste as is",
+      "Converting waste into higher-value products",
+      "Throwing waste in landfill",
+      "Dumping into ocean"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "What kind of waste are vegetable peels?",
+    "options": [
+      "Dry Waste",
+      "Wet Waste",
+      "Hazardous Waste",
+      "E-waste"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "Which waste is a major contributor to ocean pollution?",
+    "options": [
+      "Organic Waste",
+      "Plastic Waste",
+      "Glass",
+      "Rubber"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "Which of these is a recyclable item?",
+    "options": [
+      "Used tissue",
+      "Plastic straw",
+      "Aluminum can",
+      "Food scraps"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "How can individuals reduce plastic waste?",
+    "options": [
+      "Use single-use bags",
+      "Avoid recycling",
+      "Carry reusable bags",
+      "Burn plastics"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "What is the environmental problem with plastic?",
+    "options": [
+      "It decomposes too fast",
+      "It causes floods",
+      "It takes hundreds of years to decompose",
+      "It grows bacteria"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "What is the process of breaking down organic material by microbes called?",
+    "options": [
+      "Incineration",
+      "Segregation",
+      "Composting",
+      "Dehydration"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "Which of these is considered e-waste?",
+    "options": [
+      "Banana peel",
+      "Plastic bag",
+      "Old laptop",
+      "Glass bottle"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "Biomedical waste should be disposed of in which bin?",
+    "options": [
+      "Green",
+      "Yellow",
+      "Blue",
+      "Black"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "What does the term 'zero waste' mean?",
+    "options": [
+      "Producing no trash at all",
+      "Using more packaging",
+      "Burying all waste",
+      "Burning all waste"
+    ],
+    "correctAnswer": 0
+  },
+  {
+    "question": "What is 'upcycling'?",
+    "options": [
+      "Using waste as is",
+      "Converting waste into higher-value products",
+      "Throwing waste in landfill",
+      "Dumping into ocean"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "What kind of waste are vegetable peels?",
+    "options": [
+      "Dry Waste",
+      "Wet Waste",
+      "Hazardous Waste",
+      "E-waste"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "Which waste is a major contributor to ocean pollution?",
+    "options": [
+      "Organic Waste",
+      "Plastic Waste",
+      "Glass",
+      "Rubber"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "Which of these is a recyclable item?",
+    "options": [
+      "Used tissue",
+      "Plastic straw",
+      "Aluminum can",
+      "Food scraps"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "How can individuals reduce plastic waste?",
+    "options": [
+      "Use single-use bags",
+      "Avoid recycling",
+      "Carry reusable bags",
+      "Burn plastics"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "What is the environmental problem with plastic?",
+    "options": [
+      "It decomposes too fast",
+      "It causes floods",
+      "It takes hundreds of years to decompose",
+      "It grows bacteria"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "What is the process of breaking down organic material by microbes called?",
+    "options": [
+      "Incineration",
+      "Segregation",
+      "Composting",
+      "Dehydration"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "Which of these is considered e-waste?",
+    "options": [
+      "Banana peel",
+      "Plastic bag",
+      "Old laptop",
+      "Glass bottle"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "Biomedical waste should be disposed of in which bin?",
+    "options": [
+      "Green",
+      "Yellow",
+      "Blue",
+      "Black"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "What does the term 'zero waste' mean?",
+    "options": [
+      "Producing no trash at all",
+      "Using more packaging",
+      "Burying all waste",
+      "Burning all waste"
+    ],
+    "correctAnswer": 0
+  },
+  {
+    "question": "What is 'upcycling'?",
+    "options": [
+      "Using waste as is",
+      "Converting waste into higher-value products",
+      "Throwing waste in landfill",
+      "Dumping into ocean"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "What kind of waste are vegetable peels?",
+    "options": [
+      "Dry Waste",
+      "Wet Waste",
+      "Hazardous Waste",
+      "E-waste"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "Which waste is a major contributor to ocean pollution?",
+    "options": [
+      "Organic Waste",
+      "Plastic Waste",
+      "Glass",
+      "Rubber"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "Which of these is a recyclable item?",
+    "options": [
+      "Used tissue",
+      "Plastic straw",
+      "Aluminum can",
+      "Food scraps"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "How can individuals reduce plastic waste?",
+    "options": [
+      "Use single-use bags",
+      "Avoid recycling",
+      "Carry reusable bags",
+      "Burn plastics"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "What is the environmental problem with plastic?",
+    "options": [
+      "It decomposes too fast",
+      "It causes floods",
+      "It takes hundreds of years to decompose",
+      "It grows bacteria"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "What is the process of breaking down organic material by microbes called?",
+    "options": [
+      "Incineration",
+      "Segregation",
+      "Composting",
+      "Dehydration"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "Which of these is considered e-waste?",
+    "options": [
+      "Banana peel",
+      "Plastic bag",
+      "Old laptop",
+      "Glass bottle"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "Biomedical waste should be disposed of in which bin?",
+    "options": [
+      "Green",
+      "Yellow",
+      "Blue",
+      "Black"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "What does the term 'zero waste' mean?",
+    "options": [
+      "Producing no trash at all",
+      "Using more packaging",
+      "Burying all waste",
+      "Burning all waste"
+    ],
+    "correctAnswer": 0
+  },
+  {
+    "question": "What is 'upcycling'?",
+    "options": [
+      "Using waste as is",
+      "Converting waste into higher-value products",
+      "Throwing waste in landfill",
+      "Dumping into ocean"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "What kind of waste are vegetable peels?",
+    "options": [
+      "Dry Waste",
+      "Wet Waste",
+      "Hazardous Waste",
+      "E-waste"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "Which waste is a major contributor to ocean pollution?",
+    "options": [
+      "Organic Waste",
+      "Plastic Waste",
+      "Glass",
+      "Rubber"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "Which of these is a recyclable item?",
+    "options": [
+      "Used tissue",
+      "Plastic straw",
+      "Aluminum can",
+      "Food scraps"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "How can individuals reduce plastic waste?",
+    "options": [
+      "Use single-use bags",
+      "Avoid recycling",
+      "Carry reusable bags",
+      "Burn plastics"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "What is the environmental problem with plastic?",
+    "options": [
+      "It decomposes too fast",
+      "It causes floods",
+      "It takes hundreds of years to decompose",
+      "It grows bacteria"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "What is the process of breaking down organic material by microbes called?",
+    "options": [
+      "Incineration",
+      "Segregation",
+      "Composting",
+      "Dehydration"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "Which of these is considered e-waste?",
+    "options": [
+      "Banana peel",
+      "Plastic bag",
+      "Old laptop",
+      "Glass bottle"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "Biomedical waste should be disposed of in which bin?",
+    "options": [
+      "Green",
+      "Yellow",
+      "Blue",
+      "Black"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "What does the term 'zero waste' mean?",
+    "options": [
+      "Producing no trash at all",
+      "Using more packaging",
+      "Burying all waste",
+      "Burning all waste"
+    ],
+    "correctAnswer": 0
+  },
+  {
+    "question": "What is 'upcycling'?",
+    "options": [
+      "Using waste as is",
+      "Converting waste into higher-value products",
+      "Throwing waste in landfill",
+      "Dumping into ocean"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "What kind of waste are vegetable peels?",
+    "options": [
+      "Dry Waste",
+      "Wet Waste",
+      "Hazardous Waste",
+      "E-waste"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "Which waste is a major contributor to ocean pollution?",
+    "options": [
+      "Organic Waste",
+      "Plastic Waste",
+      "Glass",
+      "Rubber"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "Which of these is a recyclable item?",
+    "options": [
+      "Used tissue",
+      "Plastic straw",
+      "Aluminum can",
+      "Food scraps"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "How can individuals reduce plastic waste?",
+    "options": [
+      "Use single-use bags",
+      "Avoid recycling",
+      "Carry reusable bags",
+      "Burn plastics"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "What is the environmental problem with plastic?",
+    "options": [
+      "It decomposes too fast",
+      "It causes floods",
+      "It takes hundreds of years to decompose",
+      "It grows bacteria"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "What is the process of breaking down organic material by microbes called?",
+    "options": [
+      "Incineration",
+      "Segregation",
+      "Composting",
+      "Dehydration"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "Which of these is considered e-waste?",
+    "options": [
+      "Banana peel",
+      "Plastic bag",
+      "Old laptop",
+      "Glass bottle"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "Biomedical waste should be disposed of in which bin?",
+    "options": [
+      "Green",
+      "Yellow",
+      "Blue",
+      "Black"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "What does the term 'zero waste' mean?",
+    "options": [
+      "Producing no trash at all",
+      "Using more packaging",
+      "Burying all waste",
+      "Burning all waste"
+    ],
+    "correctAnswer": 0
+  },
+  {
+    "question": "What is 'upcycling'?",
+    "options": [
+      "Using waste as is",
+      "Converting waste into higher-value products",
+      "Throwing waste in landfill",
+      "Dumping into ocean"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "What kind of waste are vegetable peels?",
+    "options": [
+      "Dry Waste",
+      "Wet Waste",
+      "Hazardous Waste",
+      "E-waste"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "Which waste is a major contributor to ocean pollution?",
+    "options": [
+      "Organic Waste",
+      "Plastic Waste",
+      "Glass",
+      "Rubber"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "Which of these is a recyclable item?",
+    "options": [
+      "Used tissue",
+      "Plastic straw",
+      "Aluminum can",
+      "Food scraps"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "How can individuals reduce plastic waste?",
+    "options": [
+      "Use single-use bags",
+      "Avoid recycling",
+      "Carry reusable bags",
+      "Burn plastics"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "What is the environmental problem with plastic?",
+    "options": [
+      "It decomposes too fast",
+      "It causes floods",
+      "It takes hundreds of years to decompose",
+      "It grows bacteria"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "What is the process of breaking down organic material by microbes called?",
+    "options": [
+      "Incineration",
+      "Segregation",
+      "Composting",
+      "Dehydration"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "Which of these is considered e-waste?",
+    "options": [
+      "Banana peel",
+      "Plastic bag",
+      "Old laptop",
+      "Glass bottle"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "Biomedical waste should be disposed of in which bin?",
+    "options": [
+      "Green",
+      "Yellow",
+      "Blue",
+      "Black"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "What does the term 'zero waste' mean?",
+    "options": [
+      "Producing no trash at all",
+      "Using more packaging",
+      "Burying all waste",
+      "Burning all waste"
+    ],
+    "correctAnswer": 0
+  },
+  {
+    "question": "What is 'upcycling'?",
+    "options": [
+      "Using waste as is",
+      "Converting waste into higher-value products",
+      "Throwing waste in landfill",
+      "Dumping into ocean"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "What kind of waste are vegetable peels?",
+    "options": [
+      "Dry Waste",
+      "Wet Waste",
+      "Hazardous Waste",
+      "E-waste"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "Which waste is a major contributor to ocean pollution?",
+    "options": [
+      "Organic Waste",
+      "Plastic Waste",
+      "Glass",
+      "Rubber"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "Which of these is a recyclable item?",
+    "options": [
+      "Used tissue",
+      "Plastic straw",
+      "Aluminum can",
+      "Food scraps"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "How can individuals reduce plastic waste?",
+    "options": [
+      "Use single-use bags",
+      "Avoid recycling",
+      "Carry reusable bags",
+      "Burn plastics"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "What is the environmental problem with plastic?",
+    "options": [
+      "It decomposes too fast",
+      "It causes floods",
+      "It takes hundreds of years to decompose",
+      "It grows bacteria"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "What is the process of breaking down organic material by microbes called?",
+    "options": [
+      "Incineration",
+      "Segregation",
+      "Composting",
+      "Dehydration"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "Which of these is considered e-waste?",
+    "options": [
+      "Banana peel",
+      "Plastic bag",
+      "Old laptop",
+      "Glass bottle"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "Biomedical waste should be disposed of in which bin?",
+    "options": [
+      "Green",
+      "Yellow",
+      "Blue",
+      "Black"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "What does the term 'zero waste' mean?",
+    "options": [
+      "Producing no trash at all",
+      "Using more packaging",
+      "Burying all waste",
+      "Burning all waste"
+    ],
+    "correctAnswer": 0
+  },
+  {
+    "question": "What is 'upcycling'?",
+    "options": [
+      "Using waste as is",
+      "Converting waste into higher-value products",
+      "Throwing waste in landfill",
+      "Dumping into ocean"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "What kind of waste are vegetable peels?",
+    "options": [
+      "Dry Waste",
+      "Wet Waste",
+      "Hazardous Waste",
+      "E-waste"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "Which waste is a major contributor to ocean pollution?",
+    "options": [
+      "Organic Waste",
+      "Plastic Waste",
+      "Glass",
+      "Rubber"
+    ],
+    "correctAnswer": 1
+  },
+  {
+    "question": "Which of these is a recyclable item?",
+    "options": [
+      "Used tissue",
+      "Plastic straw",
+      "Aluminum can",
+      "Food scraps"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "How can individuals reduce plastic waste?",
+    "options": [
+      "Use single-use bags",
+      "Avoid recycling",
+      "Carry reusable bags",
+      "Burn plastics"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "What is the environmental problem with plastic?",
+    "options": [
+      "It decomposes too fast",
+      "It causes floods",
+      "It takes hundreds of years to decompose",
+      "It grows bacteria"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "What is the process of breaking down organic material by microbes called?",
+    "options": [
+      "Incineration",
+      "Segregation",
+      "Composting",
+      "Dehydration"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "Which of these is considered e-waste?",
+    "options": [
+      "Banana peel",
+      "Plastic bag",
+      "Old laptop",
+      "Glass bottle"
+    ],
+    "correctAnswer": 2
+  },
+  {
+    "question": "Biomedical waste should be disposed of in which bin?",
+    "options": [
+      "Green",
+      "Yellow",
+      "Blue",
+      "Black"
+    ],
+    "correctAnswer": 1
+  }
+]

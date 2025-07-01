@@ -1,14 +1,28 @@
-import { useState } from 'react'
+import { useState,useEffect } from 'react'
 import { assets } from '../assets/assets'
 import { Link, useNavigate } from 'react-router-dom'
-import { MenuIcon, SearchIcon, GiftIcon, XIcon } from 'lucide-react'
+import { MenuIcon, GiftIcon, XIcon } from 'lucide-react'
 import { useClerk, UserButton, useUser } from '@clerk/clerk-react'
+
 
 const Navbar = () => {
 const [isOpen, setIsOpen] = useState(false)
 const { user } = useUser()
-const { openSignIn } = useClerk()
 const navigate = useNavigate()
+
+  useEffect(() => {
+    if (user) {
+      fetch(`http://localhost:4000/api/missions/user/${user.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: user.primaryEmailAddress?.emailAddress || user.emailAddresses?.[0]?.emailAddress,
+          name: user.fullName || user.username || '',
+          profileImage: user.imageUrl || ''
+        })
+      })
+    }
+  }, [user])
 
 return (
 <div className='fixed top-0 left-0 z-50 w-full flex items-center justify-center px-6 md:px-16 lg:px-36 py-5'>
@@ -24,19 +38,19 @@ return (
       <Link onClick={() => { scrollTo(0, 0); setIsOpen(false) }} to="/leaderboard">Leaderboard</Link>
       <Link onClick={() => { scrollTo(0, 0); setIsOpen(false) }} to="/rewards">Rewards</Link>
       <Link onClick={() => { scrollTo(0, 0); setIsOpen(false) }} to="/dashboard">Profile</Link>
+      <Link onClick={() => { scrollTo(0, 0); setIsOpen(false) }} to="/daily-quest">Daily Quest</Link>
     </div>
 
     <div className='flex items-center gap-4'>
-      <SearchIcon className='max-md:hidden w-6 h-6 cursor-pointer' />
       {
         !user ? (
-          <button onClick={openSignIn} className='px-4 py-1 sm:px-7 sm:py-2 bg-green-600 hover:bg-green-500 transition rounded-full font-medium text-white cursor-pointer'>
+          <button onClick={() => navigate('/sign-in')} className='px-4 py-1 sm:px-7 sm:py-2 bg-green-600 hover:bg-green-500 transition rounded-full font-medium text-white cursor-pointer'>
             Login
           </button>
         ) : (
           <UserButton>
             <UserButton.MenuItems>
-              <UserButton.Action label='My Rewards' labelIcon={<GiftIcon width={15} />} onClick={() => navigate('/my-rewards')} />
+              <UserButton.Action label='Invite Friends' labelIcon={<GiftIcon width={15} />} onClick={() => navigate('/invitation-form')} />
             </UserButton.MenuItems>
           </UserButton>
         )

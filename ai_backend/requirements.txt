@@ -1,0 +1,13 @@
+flask
+flask-cors
+torch
+transformers
+pillow
+requests
+imagehash
+pymongo
+opencv-python
+scipy
+scikit-image
+python-dotenv
+numpy
